@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RD Gestiones - Reporte de Ventas Diario</title>
+    <style>
+        body { background-color: #0c1017; color: #ffffff; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background-color: #161b22; border: 1px solid #ffcc00; border-radius: 12px; padding: 35px; width: 450px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); text-align: center; }
+        h2 { color: #ffcc00; margin: 0 0 5px 0; font-size: 22px; letter-spacing: 1px; }
+        .subtitle { color: #8b949e; font-size: 13px; margin: 0 0 30px 0; }
+        .item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #21262d; font-size: 15px; }
+        .total-box { display: flex; justify-content: space-between; margin-top: 20px; padding: 15px; background-color: #0d1117; border-radius: 8px; border: 1px solid #30363d; }
+        .btn { width: 100%; padding: 12px; background-color: #1f2937; border: 1px solid #30363d; color: #c9d1d9; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; text-decoration: none; display: block; box-sizing: border-box; margin-top: 25px; transition: border-color 0.3s; }
+        .btn:hover { border-color: #ffcc00; color: white; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>📊 REPORTE DE VENTAS DIARIO</h2>
+        <p class="subtitle">Consolidado general de ingresos y distribución de gastos</p>
+        
+        <div class="item">
+            <span style="color: #8b949e;">📅 Fecha de Consulta:</span>
+            <strong id="lblFecha">--/--/----</strong>
+        </div>
+        <div class="item">
+            <span style="color: #8b949e;">💰 Ingresos Brutos (Clientes):</span>
+            <strong style="color: #2ea44f;" id="lblIngresos">$0</strong>
+        </div>
+        <div class="item">
+            <span style="color: #8b949e;">💸 Pagos Totales a Entidades:</span>
+            <strong style="color: #f85149;" id="lblEntidades">$0</strong>
+        </div>
+        <div class="item">
+            <span style="color: #8b949e;">🤝 Comisiones a Tramitadores:</span>
+            <strong style="color: #f85149;" id="lblTramitadores">$0</strong>
+        </div>
+        
+        <div class="total-box">
+            <span style="color: #ffcc00; font-weight: bold;">💵 UTILIDAD NETO EN CAJA:</span>
+            <strong style="color: #ffcc00; font-size: 18px;" id="lblNeto">$0</strong>
+        </div>
+        
+        <!-- Ruta de retorno corregida sin barra inicial o absoluta segura -->
+        <a href="http://localhost/FACTURADOR/menu.html" class="btn">🏠 REGRESAR AL MENÚ</a>
+    </div>
+
+    <script>
+       // Interceptamos el fetch incluyendo credenciales de sesión para el puerto 3000
+        const originalFetchReporte = window.fetch;
+
+        window.fetch = function(url, options) {
+            const sedeId = localStorage.getItem('sede_activa_id') || 1;
+            if (typeof url === 'string' && url.includes('/api/reporte-contable-diario')) {
+                url = `http://localhost:3000/api/reporte-contable-diario?sedeId=${sedeId}`;
+            }
+            
+            // Forzamos el envío de cookies/sesión entre puertos
+            options = options || {};
+            options.credentials = 'include';
+            
+            return originalFetchReporte(url, options);
+        };
+        // Consultamos la API contable al cargar la pantalla
+        fetch('/api/reporte-contable-diario')
+            .then(res => {
+                if (res.status === 403) {
+                    alert("⛔ Acceso Denegado: Módulo financiero exclusivo para el Administrador.");
+                    window.location.href = 'http://localhost/FACTURADOR/menu.html';
+                    throw new Error();
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (data) {
+                    const fechaHoy = new Date().toLocaleDateString('es-CO');
+                    document.getElementById('lblFecha').innerText = data.fecha || fechaHoy;
+                    
+                    const ingresos = Number(data.ingresos || 0);
+                    const entidades = Number(data.entidades || 0);
+                    const tramitadores = Number(data.tramitadores || 0);
+                    
+                    const neto = ingresos - entidades - tramitadores;
+
+                    document.getElementById('lblIngresos').innerText = "$" + ingresos.toLocaleString('es-CO');
+                    document.getElementById('lblEntidades').innerText = "$" + entidades.toLocaleString('es-CO');
+                    document.getElementById('lblTramitadores').innerText = "$" + tramitadores.toLocaleString('es-CO');
+                    document.getElementById('lblNeto').innerText = "$" + neto.toLocaleString('es-CO');
+                }
+            })
+            .catch(err => console.error("Error al cargar balance:", err));
+    </script>
+</body>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RD Gestiones - Reporte de Ventas Diario</title>
+    <style>
+        body { background-color: #0c1017; color: #ffffff; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background-color: #161b22; border: 1px solid #ffcc00; border-radius: 12px; padding: 35px; width: 450px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); text-align: center; }
+        h2 { color: #ffcc00; margin: 0 0 5px 0; font-size: 22px; letter-spacing: 1px; }
+        .subtitle { color: #8b949e; font-size: 13px; margin: 0 0 30px 0; }
+        .item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #21262d; font-size: 15px; }
+        .total-box { display: flex; justify-content: space-between; margin-top: 20px; padding: 15px; background-color: #0d1117; border-radius: 8px; border: 1px solid #30363d; }
+        .btn { width: 100%; padding: 12px; background-color: #1f2937; border: 1px solid #30363d; color: #c9d1d9; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; text-decoration: none; display: block; box-sizing: border-box; margin-top: 25px; transition: border-color 0.3s; }
+        .btn:hover { border-color: #ffcc00; color: white; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>📊 REPORTE DE VENTAS DIARIO</h2>
+        <p class="subtitle">Consolidado general de ingresos y distribución de gastos</p>
+        
+        <div class="item">
+            <span style="color: #8b949e;">📅 Fecha de Consulta:</span>
+            <strong id="lblFecha">--/--/----</strong>
+        </div>
+        <div class="item">
+            <span style="color: #8b949e;">💰 Ingresos Brutos (Clientes):</span>
+            <strong style="color: #2ea44f;" id="lblIngresos">$0</strong>
+        </div>
+        <div class="item">
+            <span style="color: #8b949e;">💸 Pagos Totales a Entidades:</span>
+            <strong style="color: #f85149;" id="lblEntidades">$0</strong>
+        </div>
+        <div class="item">
+            <span style="color: #8b949e;">🤝 Comisiones a Tramitadores:</span>
+            <strong style="color: #f85149;" id="lblTramitadores">$0</strong>
+        </div>
+        
+        <div class="total-box">
+            <span style="color: #ffcc00; font-weight: bold;">💵 UTILIDAD NETO EN CAJA:</span>
+            <strong style="color: #ffcc00; font-size: 18px;" id="lblNeto">$0</strong>
+        </div>
+        
+        <!-- Ruta de retorno corregida sin barra inicial o absoluta segura -->
+        <a href="http://localhost/FACTURADOR/menu.html" class="btn">🏠 REGRESAR AL MENÚ</a>
+    </div>
+
+    <script>
+       // Interceptamos el fetch incluyendo credenciales de sesión para el puerto 3000
+        const originalFetchReporte = window.fetch;
+
+        window.fetch = function(url, options) {
+            const sedeId = localStorage.getItem('sede_activa_id') || 1;
+            if (typeof url === 'string' && url.includes('/api/reporte-contable-diario')) {
+                url = `http://localhost:3000/api/reporte-contable-diario?sedeId=${sedeId}`;
+            }
+            
+            // Forzamos el envío de cookies/sesión entre puertos
+            options = options || {};
+            options.credentials = 'include';
+            
+            return originalFetchReporte(url, options);
+        };
+        // Consultamos la API contable al cargar la pantalla
+        fetch('/api/reporte-contable-diario')
+            .then(res => {
+                if (res.status === 403) {
+                    alert("⛔ Acceso Denegado: Módulo financiero exclusivo para el Administrador.");
+                    window.location.href = 'http://localhost/FACTURADOR/menu.html';
+                    throw new Error();
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (data) {
+                    const fechaHoy = new Date().toLocaleDateString('es-CO');
+                    document.getElementById('lblFecha').innerText = data.fecha || fechaHoy;
+                    
+                    const ingresos = Number(data.ingresos || 0);
+                    const entidades = Number(data.entidades || 0);
+                    const tramitadores = Number(data.tramitadores || 0);
+                    
+                    const neto = ingresos - entidades - tramitadores;
+
+                    document.getElementById('lblIngresos').innerText = "$" + ingresos.toLocaleString('es-CO');
+                    document.getElementById('lblEntidades').innerText = "$" + entidades.toLocaleString('es-CO');
+                    document.getElementById('lblTramitadores').innerText = "$" + tramitadores.toLocaleString('es-CO');
+                    document.getElementById('lblNeto').innerText = "$" + neto.toLocaleString('es-CO');
+                }
+            })
+            .catch(err => console.error("Error al cargar balance:", err));
+    </script>
+</body>
+
+</html>

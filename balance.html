@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RD Gestiones - Balance Mensual de Caja</title>
+    <style>
+        body { background-color: #0c1017; color: #ffffff; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background-color: #161b22; border: 1px solid #28a745; border-radius: 12px; padding: 35px; width: 550px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); text-align: center; }
+        h2 { color: #28a745; margin: 0 0 5px 0; font-size: 22px; letter-spacing: 1px; }
+        .subtitle { color: #8b949e; font-size: 13px; margin: 0 0 30px 0; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .box { background-color: #0d1117; padding: 20px; border-radius: 8px; border: 1px solid #30363d; text-align: left; }
+        .box h3 { margin: 0 0 15px 0; font-size: 15px; letter-spacing: 0.5px; border-bottom: 1px solid #21262d; padding-bottom: 8px; }
+        .box p { margin: 8px 0; font-size: 13px; color: #c9d1d9; display: flex; justify-content: space-between; }
+        .btn { width: 100%; padding: 12px; background-color: #1f2937; border: 1px solid #30363d; color: #c9d1d9; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; text-decoration: none; display: block; box-sizing: border-box; transition: border-color 0.3s; }
+        .btn:hover { border-color: #28a745; color: white; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>📅 BALANCE MENSUAL DE CAJA</h2>
+        <p class="subtitle">Flujos contables liquidados en el mes de Efectivo vs. Bancos</p>
+        
+        <div class="grid">
+            <!-- Bloque Efectivo -->
+            <div class="box" style="border-color: #ffd700;">
+                <h3 style="color: #ffd700;">💵 EFECTIVO (CAJA)</h3>
+                <p>Ingresos: <strong style="color: #2ea44f;" id="efeIng">$0</strong></p>
+                <p>Egresos: <strong style="color: #f85149;" id="efeEgr">$0</strong></p>
+                <p style="margin-top: 15px; font-weight: bold; border-top: 1px dotted #30363d; padding-top: 10px; font-size: 14px;">
+                    Caja Real: <span id="efeTotal" style="color: white;">$0</span>
+                </p>
+            </div>
+            <!-- Bloque Bancos -->
+            <div class="box" style="border-color: #007bff;">
+                <h3 style="color: #007bff;">📱 CUENTAS DIGITALES</h3>
+                <p>Ingresos: <strong style="color: #2ea44f;" id="ctaIng">$0</strong></p>
+                <p>Egresos: <strong style="color: #f85149;" id="ctaEgr">$0</strong></p>
+                <p style="margin-top: 15px; font-weight: bold; border-top: 1px dotted #30363d; padding-top: 10px; font-size: 14px;">
+                    Banco Real: <span id="ctaTotal" style="color: white;">$0</span>
+                </p>
+            </div>
+        </div>
+        
+        <!-- Ruta de retorno corregida -->
+        <a href="http://localhost/FACTURADOR/menu.html" class="btn">🏠 REGRESAR AL MENÚ</a>
+    </div>
+
+    <script>
+        // Guardamos la referencia al fetch original
+        const originalFetchBalance = window.fetch;
+
+        // Interceptamos el fetch para apuntar al servidor Node.js en el puerto 3000 con la sede activa
+        window.fetch = function(url, options) {
+            const sedeId = localStorage.getItem('sede_activa_id') || 1;
+            if (typeof url === 'string' && url.includes('/api/reporte-contable-mensual')) {
+                url = `http://localhost:3000/api/reporte-contable-mensual?sedeId=${sedeId}`;
+            }
+            return originalFetchBalance(url, options);
+        };
+
+        // Consultamos la API mensual al cargar la pantalla
+        fetch('/api/reporte-contable-mensual')
+            .then(res => {
+                if (res.status === 403) {
+                    alert("⛔ Acceso Denegado: Módulo financiero exclusivo para el Administrador.");
+                    window.location.href = 'http://localhost/FACTURADOR/menu.html';
+                    throw new Error();
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (data && data.exito) {
+                    document.getElementById('efeIng').innerText = "$" + Number(data.efectivo_ingresos || 0).toLocaleString('es-CO');
+                    document.getElementById('efeEgr').innerText = "$" + Number(data.efectivo_egresos || 0).toLocaleString('es-CO');
+                    document.getElementById('efeTotal').innerText = "$" + (Number(data.efectivo_ingresos || 0) - Number(data.efectivo_egresos || 0)).toLocaleString('es-CO');
+                    
+                    document.getElementById('ctaIng').innerText = "$" + Number(data.cuentas_ingresos || 0).toLocaleString('es-CO');
+                    document.getElementById('ctaEgr').innerText = "$" + Number(data.cuentas_egresos || 0).toLocaleString('es-CO');
+                    document.getElementById('ctaTotal').innerText = "$" + (Number(data.cuentas_ingresos || 0) - Number(data.cuentas_egresos || 0)).toLocaleString('es-CO');
+                }
+            })
+            .catch(err => console.error("Error al cargar flujos:", err));
+    </script>
+</body>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RD Gestiones - Balance Mensual de Caja</title>
+    <style>
+        body { background-color: #0c1017; color: #ffffff; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background-color: #161b22; border: 1px solid #28a745; border-radius: 12px; padding: 35px; width: 550px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); text-align: center; }
+        h2 { color: #28a745; margin: 0 0 5px 0; font-size: 22px; letter-spacing: 1px; }
+        .subtitle { color: #8b949e; font-size: 13px; margin: 0 0 30px 0; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .box { background-color: #0d1117; padding: 20px; border-radius: 8px; border: 1px solid #30363d; text-align: left; }
+        .box h3 { margin: 0 0 15px 0; font-size: 15px; letter-spacing: 0.5px; border-bottom: 1px solid #21262d; padding-bottom: 8px; }
+        .box p { margin: 8px 0; font-size: 13px; color: #c9d1d9; display: flex; justify-content: space-between; }
+        .btn { width: 100%; padding: 12px; background-color: #1f2937; border: 1px solid #30363d; color: #c9d1d9; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; text-decoration: none; display: block; box-sizing: border-box; transition: border-color 0.3s; }
+        .btn:hover { border-color: #28a745; color: white; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>📅 BALANCE MENSUAL DE CAJA</h2>
+        <p class="subtitle">Flujos contables liquidados en el mes de Efectivo vs. Bancos</p>
+        
+        <div class="grid">
+            <!-- Bloque Efectivo -->
+            <div class="box" style="border-color: #ffd700;">
+                <h3 style="color: #ffd700;">💵 EFECTIVO (CAJA)</h3>
+                <p>Ingresos: <strong style="color: #2ea44f;" id="efeIng">$0</strong></p>
+                <p>Egresos: <strong style="color: #f85149;" id="efeEgr">$0</strong></p>
+                <p style="margin-top: 15px; font-weight: bold; border-top: 1px dotted #30363d; padding-top: 10px; font-size: 14px;">
+                    Caja Real: <span id="efeTotal" style="color: white;">$0</span>
+                </p>
+            </div>
+            <!-- Bloque Bancos -->
+            <div class="box" style="border-color: #007bff;">
+                <h3 style="color: #007bff;">📱 CUENTAS DIGITALES</h3>
+                <p>Ingresos: <strong style="color: #2ea44f;" id="ctaIng">$0</strong></p>
+                <p>Egresos: <strong style="color: #f85149;" id="ctaEgr">$0</strong></p>
+                <p style="margin-top: 15px; font-weight: bold; border-top: 1px dotted #30363d; padding-top: 10px; font-size: 14px;">
+                    Banco Real: <span id="ctaTotal" style="color: white;">$0</span>
+                </p>
+            </div>
+        </div>
+        
+        <!-- Ruta de retorno corregida -->
+        <a href="http://localhost/FACTURADOR/menu.html" class="btn">🏠 REGRESAR AL MENÚ</a>
+    </div>
+
+    <script>
+        // Guardamos la referencia al fetch original
+        const originalFetchBalance = window.fetch;
+
+        // Interceptamos el fetch para apuntar al servidor Node.js en el puerto 3000 con la sede activa
+        window.fetch = function(url, options) {
+            const sedeId = localStorage.getItem('sede_activa_id') || 1;
+            if (typeof url === 'string' && url.includes('/api/reporte-contable-mensual')) {
+                url = `http://localhost:3000/api/reporte-contable-mensual?sedeId=${sedeId}`;
+            }
+            return originalFetchBalance(url, options);
+        };
+
+        // Consultamos la API mensual al cargar la pantalla
+        fetch('/api/reporte-contable-mensual')
+            .then(res => {
+                if (res.status === 403) {
+                    alert("⛔ Acceso Denegado: Módulo financiero exclusivo para el Administrador.");
+                    window.location.href = 'http://localhost/FACTURADOR/menu.html';
+                    throw new Error();
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (data && data.exito) {
+                    document.getElementById('efeIng').innerText = "$" + Number(data.efectivo_ingresos || 0).toLocaleString('es-CO');
+                    document.getElementById('efeEgr').innerText = "$" + Number(data.efectivo_egresos || 0).toLocaleString('es-CO');
+                    document.getElementById('efeTotal').innerText = "$" + (Number(data.efectivo_ingresos || 0) - Number(data.efectivo_egresos || 0)).toLocaleString('es-CO');
+                    
+                    document.getElementById('ctaIng').innerText = "$" + Number(data.cuentas_ingresos || 0).toLocaleString('es-CO');
+                    document.getElementById('ctaEgr').innerText = "$" + Number(data.cuentas_egresos || 0).toLocaleString('es-CO');
+                    document.getElementById('ctaTotal').innerText = "$" + (Number(data.cuentas_ingresos || 0) - Number(data.cuentas_egresos || 0)).toLocaleString('es-CO');
+                }
+            })
+            .catch(err => console.error("Error al cargar flujos:", err));
+    </script>
+</body>
+</html>
