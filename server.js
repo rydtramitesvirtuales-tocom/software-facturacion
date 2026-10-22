@@ -425,18 +425,6 @@ function verificarAutenticacion(req, res, next) {
     res.redirect('/login.html');
 }
 
-// PROTECCIÓN DE ARCHIVOS HTML
-app.get('/', verificarAutenticacion, (req, res) => res.sendFile(__dirname + '/menu.html'));
-app.get('/consola.html', verificarAutenticacion, (req, res) => res.sendFile(__dirname + '/consola.html'));
-app.get('/panel.html', verificarAutenticacion, (req, res) => res.sendFile(__dirname + '/panel.html'));
-app.get('/menu.html', verificarAutenticacion, (req, res) => res.sendFile(__dirname + '/menu.html'));
-app.get('/control-tramites', verificarAutenticacion, (req, res) => res.sendFile(__dirname + '/tramites.html'));
-app.get('/reporte-diario', verificarAutenticacion, (req, res) => res.sendFile(__dirname + '/reporte.html'));
-app.get('/balance-mensual', verificarAutenticacion, (req, res) => res.sendFile(__dirname + '/balance.html'));
-app.get('/seleccionar-sede', (req, res) => res.sendFile(require('path').join(__dirname, 'sedes.html')));
-
-app.use(express.static(__dirname)); 
-
 // CONEXIÓN A MYSQL EN XAMPP
 const conexion = mysql.createConnection({
     host: process.env.DB_HOST || 'localhost',
@@ -451,6 +439,18 @@ conexion.connect((error) => {
     }
     console.log("🚀 ¡Motor Contable Automatizado de RD Gestiones Activo!");
 });
+// PROTECCIÓN DE ARCHIVOS HTML
+app.get('/', verificarAutenticacion, (req, res) => res.sendFile(__dirname + '/menu.html'));
+app.get('/consola.html', verificarAutenticacion, (req, res) => res.sendFile(__dirname + '/consola.html'));
+app.get('/panel.html', verificarAutenticacion, (req, res) => res.sendFile(__dirname + '/panel.html'));
+app.get('/menu.html', verificarAutenticacion, (req, res) => res.sendFile(__dirname + '/menu.html'));
+app.get('/control-tramites', verificarAutenticacion, (req, res) => res.sendFile(__dirname + '/tramites.html'));
+app.get('/reporte-diario', verificarAutenticacion, (req, res) => res.sendFile(__dirname + '/reporte.html'));
+app.get('/balance-mensual', verificarAutenticacion, (req, res) => res.sendFile(__dirname + '/balance.html'));
+app.get('/seleccionar-sede', (req, res) => res.sendFile(require('path').join(__dirname, 'sedes.html')));
+
+app.use(express.static(__dirname)); 
+
 
 // ENDPOINT: REGISTRO DE VENTAS
 app.post('/api/facturar-completa', (req, res) => {
