@@ -3,11 +3,6 @@ const mysql = require('mysql2');
 const session = require('express-session');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
 // Configuración de la sesión segura
 app.use(session({
     secret: 'RDGestionesSecretKey2026',
@@ -431,34 +426,6 @@ app.get('/api/balance-ingresos-gastos', (req, res) => {
     });
 });
 
-app.listen(PORT, () => {
-    console.log(`📡 Servidor Contable RD corriendo en: http://localhost:${PORT}`);
-const express = require('express');
-const mysql = require('mysql2');
-const session = require('express-session');
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Configuración de la sesión segura
-app.use(session({
-    secret: 'RDGestionesSecretKey2026',
-    resave: false,
-    saveUninitialized: false,
-    cookie: { secure: false }
-}));
-
-// Permitir conexiones cruzadas (CORS)
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', 'http://localhost');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    next();
-});
 
 // FUNCIÓN PROTECTORA: Revisa si el dispositivo tiene sesión activa
 function verificarAutenticacion(req, res, next) {
@@ -870,3 +837,4 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`📡 Servidor Contable RD corriendo en el puerto ${PORT}`);
     console.log(`🚀 ¡Motor Contable Automatizado de RD Gestiones Activo!`);
 });
+
