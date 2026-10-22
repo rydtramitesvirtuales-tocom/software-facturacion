@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RD Gestiones Empresariales - Ingreso Seguro</title>
+    <style>
+        /* Diseño base oscuro alineado con tu facturador */
+        body {
+            background-color: #0c1017;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* Tarjeta central del Login */
+        .login-card {
+            
+            background-color: #161b22;
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid #ffcc00;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            width: 340px;
+            text-align: center;
+        }
+
+        /* Logotipo o Título de la empresa */
+        .login-card h2 {
+            margin: 0 0 5px 0;
+            color: #ffcc00;
+            font-size: 24px;
+            letter-spacing: 1px;
+        }
+
+        .login-card p {
+            margin: 0 0 30px 0;
+            color: #8b949e;
+            font-size: 14px;
+        }
+
+        /* Cuadros de texto para ingresar datos */
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #c9d1d9;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #30363d;
+            background-color: #0d1117;
+            color: #ffffff;
+            font-size: 15px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            border-color: #ffcc00;
+        }
+
+        /* Botón verde de ingreso estilo tu botón de WhatsApp */
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #ffcc00;
+            color: #0c1017;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+
+        button:hover {
+            background-color: #e6b800;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <h2>RD GESTIONES</h2>
+        <p>Control de Acceso Interno</p>
+        
+        <!-- El formulario enviará los datos de forma segura al servidor -->
+       <form action="http://localhost:3000/login" method="POST" onsubmit="guardarUsuario()">
+            <div class="input-group">
+                <label>USUARIO</label>
+                <input type="text" name="usuario" placeholder="Ej. admin" required autocomplete="off">
+            </div>
+            
+            <div class="input-group">
+                <label>CONTRASEÑA</label>
+                <input type="password" name="contrasena" placeholder="Ingrese su clave" required>
+            </div>
+            
+            <button type="submit">INGRESAR AL SISTEMA</button>
+        </form>
+    </div>
+    <script>
+    function guardarUsuario() {
+        // Captura lo que el usuario escribió en la casilla 'USUARIO'
+        const campoUsuario = document.querySelector('input[name="usuario"]').value;
+        if (campoUsuario) {
+            // Lo guarda en el navegador para que menu.html lo lea
+            localStorage.setItem('usuario_activo', campoUsuario);
+        }
+    }
+</script>
+
+</body>
+</html>
