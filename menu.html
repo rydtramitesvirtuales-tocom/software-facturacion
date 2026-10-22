@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -426,4 +427,434 @@
         }
     </script>
 </body>
+=======
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Punto de Venta - RD Gestiones Empresariales</title>
+    <style>
+        :root {
+            --bg-principal: #0d0f14;
+            --color-amarillo: #d4af37;
+            --color-amarillo-brillante: #ffd700;
+            --color-texto: #ffffff;
+            --color-secundario: #a0aec0;
+            --color-verde: #10b981;
+            --color-rojo: #ef4444;
+        }
+
+        /* 1. FONDO DE PANTALLA CORRECTO PARA EL MENÚ */
+        body {
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            background-image: linear-gradient(rgba(11, 15, 25, 0.85), rgba(11, 15, 25, 0.92)), url('logo.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--color-texto);
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+
+        /* 2. ENCABEZADO SUPERIOR DE CRISTAL */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(18, 22, 31, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 14px;
+            padding: 15px 25px;
+            margin-bottom: 35px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .header-title h1 {
+            color: var(--color-amarillo-brillante);
+            font-size: 20px;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            font-weight: 700;
+        }
+
+        .header-title p {
+            color: var(--color-secundario);
+            font-size: 12px;
+            margin: 4px 0 0 0;
+        }
+
+        .header-user-zone {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-active {
+            font-size: 13px;
+            color: var(--color-secundario);
+        }
+
+        .user-active strong {
+            color: var(--color-amarillo-brillante);
+        }
+
+        /* Botón Cambiar Sede */
+        .btn-change-sede {
+            background: rgba(212, 175, 55, 0.15);
+            color: var(--color-amarillo-brillante);
+            border: 1px solid var(--color-amarillo);
+            padding: 9px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-change-sede:hover {
+            background: var(--color-amarillo);
+            color: #000000;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+            transform: translateY(-2px);
+        }
+
+        /* Botón Cerrar Sesión */
+        .btn-logout {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid var(--color-rojo);
+            padding: 9px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-logout:hover {
+            background: var(--color-rojo);
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+            transform: translateY(-2px);
+        }
+
+        /* 3. ESTRUCTURA PRINCIPAL DE 3 COLUMNAS */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr 1fr;
+            gap: 25px;
+            flex-grow: 1;
+            align-items: center;
+            max-width: 1300px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .menu-column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* 4. TARJETAS LATERALES DE MÓDULOS */
+        .menu-btn {
+            background: rgba(18, 22, 31, 0.78);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            border-radius: 14px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .menu-btn:hover {
+            background: rgba(26, 32, 46, 0.92);
+            border-color: var(--color-amarillo);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.6), 0 0 18px rgba(212, 175, 55, 0.25);
+        }
+
+        .menu-btn .icon {
+            font-size: 22px;
+            background: rgba(212, 175, 55, 0.12);
+            border: 1px solid rgba(212, 175, 55, 0.35);
+            padding: 10px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-btn-text h3 {
+            margin: 0 0 4px 0;
+            font-size: 15px;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .menu-btn-text p {
+            margin: 0;
+            font-size: 11px;
+            color: var(--color-secundario);
+            line-height: 1.3;
+        }
+
+        /* 5. TARJETA CENTRAL */
+        .center-panel {
+            background: rgba(14, 18, 27, 0.85);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 2px solid var(--color-amarillo);
+            border-radius: 18px;
+            padding: 35px 30px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.8), 0 0 25px rgba(212, 175, 55, 0.2);
+        }
+
+        .logo-placeholder {
+            font-size: 45px;
+            background: rgba(212, 175, 55, 0.1);
+            width: 95px;
+            height: 95px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            border: 2px solid var(--color-amarillo);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+        }
+
+        .company-info h2 {
+            margin: 0 0 8px 0;
+            font-size: 22px;
+            color: var(--color-amarillo-brillante);
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        .company-info p {
+            margin: 4px 0;
+            font-size: 13px;
+            color: var(--color-secundario);
+        }
+
+        /* 6. CAJAS DE VENTAS Y UTILIDADES */
+        .metrics-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .metric-card {
+            background: rgba(18, 22, 31, 0.7);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .metric-card.border-yellow {
+            border-color: var(--color-amarillo);
+            box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.1);
+        }
+
+        .metric-title {
+            font-size: 10px;
+            color: var(--color-secundario);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-value {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .text-green { color: var(--color-verde); }
+        .text-yellow { color: var(--color-amarillo-brillante); }
+
+        @media (max-width: 900px) {
+            .main-layout { grid-template-columns: 1fr; }
+            .center-panel { order: -1; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">
+            <h1>Punto de Venta RD Gestiones Empresariales</h1>
+            <p>Panel de Control Interno y Operaciones</p>
+        </div>
+        <div class="header-user-zone">
+            <div class="user-active">Usuario activo: <strong id="nombreUsuarioActivo">Daniel García</strong></div>
+            
+            <!-- Botón de Cambiar Sede restaurado -->
+            <button class="btn-change-sede" onclick="window.location.href='sedes.html';">🏢 CAMBIAR SEDE</button>
+            
+            <!-- Único botón limpio de Cerrar Sesión -->
+            <button class="btn-logout" onclick="localStorage.clear(); window.location.href='login.html';">🔒 CERRAR SESIÓN</button>
+        </div>    </header>
+
+    <main class="main-layout">
+        
+        <!-- Lado Izquierdo -->
+        <div class="menu-column">
+            <a href="consola.html" class="menu-btn">
+                <div class="icon">📄</div>
+                <div class="menu-btn-text">
+                    <h3>Ir al Facturador</h3>
+                    <p>Registro de trámites, abonos y control de saldos diario.</p>
+                </div>
+            </a>
+
+            <a href="reporte.html" class="menu-btn">
+                <div class="icon">📊</div>
+                <div class="menu-btn-text">
+                    <h3>Reporte de Ventas y Gastos</h3>
+                    <p>Relación diaria de ganancias, pagos a entidades y tramitadores.</p>
+                </div>
+            </a>
+
+            <a href="ingresos_gastos.php" class="menu-btn">
+                <div class="icon">⚖️</div>
+                <div class="menu-btn-text">
+                    <h3>Control de Ingresos y Gastos</h3>
+                    <p>Registro manual de gastos y flujo de caja del facturador.</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- Centro: Logo y Datos -->
+        <div class="center-panel">
+            <div class="logo-placeholder">💼</div>
+            
+            <div class="company-info">
+                <h2>RD GESTIONES EMPRESARIALES</h2>
+                <p>CRA 52 # 42 -60 LOCAL 108</p>
+                <p>📞 3017222991</p>
+            </div>
+
+            <div class="metrics-container">
+                <div class="metric-card">
+                    <div class="metric-title">💰 Ventas Brutas Hoy</div>
+                    <div class="metric-value text-green" id="menuVentas">$0</div>
+                </div>
+                <div class="metric-card border-yellow">
+                    <div class="metric-title">📈 Utilidad Neto Hoy</div>
+                    <div class="metric-value text-yellow" id="menuUtilidad">$0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lado Derecho (Rutas corregidas sin barra inicial) -->
+        <div class="menu-column">
+            <a href="balance.html" class="menu-btn">
+                <div class="icon">🏦</div>
+                <div class="menu-btn-text">
+                    <h3>Balance Mensual de Caja</h3>
+                    <p>Control contable de flujos mensuales en Efectivo vs Cuentas.</p>
+                </div>
+            </a>
+            <a href="tramites.html" class="menu-btn">
+                <div class="icon">📦</div>
+                <div class="menu-btn-text">
+                    <h3>Control y Estado de Trámites</h3>
+                    <p>Monitoreo de expedientes internos. Revisa qué está pendiente o listo.</p>
+                </div>
+            </a>
+        </div>
+
+    </main>
+
+<script>
+      const originalFetchMenu = window.fetch;
+    window.fetch = function(url, options) {
+        const sedeId = localStorage.getItem('sede_activa_id') || 1;
+        if (typeof url === 'string' && url.includes('/api/reporte-contable-diario')) {
+            url = `http://localhost:3000/api/reporte-contable-diario?sedeId=${sedeId}`;
+        }
+        return originalFetchMenu(url, options);
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const sedeId = localStorage.getItem('sede_activa_id');
+        const sedeNombre = localStorage.getItem('sede_activa_nombre');
+        
+              if (!sedeId) {
+                window.location.href = 'sedes.html';
+                return;
+            }
+
+            const titulos = document.querySelectorAll('h2');
+            const parrafos = document.querySelectorAll('p');
+
+            titulos.forEach(titulo => {
+                if (titulo.innerText.includes("RD GESTIONES")) {
+                    titulo.innerText = sedeNombre ? sedeNombre.toUpperCase() : "RD GESTIONES";
+                }
+            });
+
+            parrafos.forEach(p => {
+                const esDireccion = p.innerText.includes("CRA 52") || p.innerText.includes("CALLE 54") || p.innerText.includes("LOCAL 108") || p.innerText.includes("LOCAL 104") || p.innerText.includes("42-60");
+                const esTelefono = p.innerText.includes("3017222991") || p.innerText.includes("3009012017") || p.innerText.includes("2991");
+
+                if (sedeId === "1") { 
+                    if (esDireccion) p.innerText = "CRA 52 # 42 -60 LOCAL 108";
+                    if (esTelefono) p.innerText = "3017222991";
+                } else if (sedeId === "2") { 
+                    if (esDireccion) p.innerText = "CALLE 54 # 45-6, LOCAL 104 MEDELLÍN";
+                    if (esTelefono) p.innerText = "3009012017";
+                }
+            });
+
+            fetch(`/api/reporte-contable-diario?sedeId=${sedeId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data) {
+                        const ingresos = Number(data.ingresos || 0);
+                        const entidades = Number(data.entidades || 0);
+                        const tramitadores = Number(data.tramitadores || 0);
+                        const neto = ingresos - entidades - tramitadores;
+
+                        const elVentas = document.getElementById('menuVentas');
+                        const elUtilidad = document.getElementById('menuUtilidad');
+
+                        if (elVentas) elVentas.innerText = "$" + ingresos.toLocaleString('es-CO');
+                        if (elUtilidad) elUtilidad.innerText = "$" + neto.toLocaleString('es-CO');
+                    }
+                })
+                .catch(err => console.error("Error al cargar contadores del menú:", err));
+        });
+
+        const usuarioGuardado = localStorage.getItem('usuario_activo');
+        if (usuarioGuardado) {
+            document.getElementById('nombreUsuarioActivo').innerText = usuarioGuardado;
+        }
+    </script>
+</body>
+>>>>>>> e70e1e59c09505c7aed622a900999c3de65c1268
 </html>

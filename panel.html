@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -90,3 +91,97 @@
             document.getElementById('label-total').innerText = "$" + valTramite.toLocaleString('es-CO');
         }
         document.getElementById('val-tramitador').addEventListener('input', calcularTotal);
+=======
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Ventas - RD Gestiones Empresariales</title>
+    <style>
+        body { font-family: system-ui, sans-serif; background-color: #0b0c10; color: #e2e8f0; margin: 0; padding: 0; box-sizing: border-box; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; }
+        header { background-color: rgba(31, 35, 43, 0.9); border-bottom: 2px solid rgba(245, 158, 11, 0.3); padding: 8px 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); }
+        .header-brand { display: flex; align-items: center; gap: 10px; }
+        .logo-rd { width: 36px; height: 36px; background: linear-gradient(135deg, #fcd34d, #f59e0b, #d97706); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #0b0c10; font-size: 15px; box-shadow: 0 0 8px rgba(245, 158, 11, 0.4); }
+        .brand-titles h1 { margin: 0; font-size: 18px; font-weight: 700; color: #fde68a; background: linear-gradient(to right, #fff, #fcd34d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .brand-titles p { margin: 1px 0 0 0; font-size: 9px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #f59e0b; }
+        .wrapper-principal { max-width: 1260px; width: 97%; margin: 15px auto; display: grid !important; grid-template-columns: 8fr 4fr !important; gap: 15px; align-items: start; flex-grow: 1; }
+        .card-form { background-color: #1f232b; border: 1px solid rgba(245, 158, 11, 0.15); border-radius: 12px; padding: 15px 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
+        .card-sidebar { display: flex; flex-direction: column; gap: 15px; position: sticky; top: 15px; }
+        .section-title { font-size: 11px; font-weight: bold; color: #fde68a; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #334155; padding-bottom: 4px; margin-bottom: 12px; margin-top: 5px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+        .form-group label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #94a3b8; }
+        .form-group input, .form-group select, .form-group textarea { background-color: #12151c; border: 1px solid #334155; border-radius: 6px; padding: 10px; color: #fff; font-size: 13px; outline: none; box-sizing: border-box; width: 100%; }
+        .form-group input:focus, .form-group select:focus { border-color: #f59e0b; }
+        .total-display { background-color: #12151c; border: 2px solid #334155; border-radius: 10px; padding: 15px; text-align: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.6); }
+        .total-title { font-size: 11px; font-weight: 800; color: #94a3b8; letter-spacing: 1px; margin-bottom: 3px; }
+        .total-amount { font-size: 32px; font-weight: 800; color: #10b981; }
+        .btn-green-excel { width: 100%; background: linear-gradient(to right, #10b981, #059669); color: #fff; border: none; padding: 15px; border-radius: 10px; font-weight: bold; font-size: 15px; text-transform: uppercase; letter-spacing: 1.5px; cursor: pointer; box-shadow: 0 8px 15px rgba(16, 185, 129, 0.2); transition: all 0.2s; }
+        .btn-green-excel:hover { background: linear-gradient(to right, #059669, #047857); transform: scale(0.99); }
+        footer { background-color: #12151c; border-top: 1px solid #1e293b; padding: 12px 30px; color: #94a3b8; display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 5px; font-size: 11px; }
+        @media (min-width: 640px) { footer { flex-direction: row; } }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-brand"><div class="logo-rd">RD</div><div class="brand-titles"><h1>RD GESTIONES EMPRESARIALES</h1><p>REGISTRO DE VENTAS CORPORATIVO</p></div></div>
+        <div style="display:flex; gap:15px; align-items:center;">
+            <div style="text-align: right; font-family: monospace; font-size: 12px;"><span id="txt-fecha" style="color:#94a3b8;">--/--/----</span> | <span id="txt-hora" style="color:#fcd34d; font-weight:bold;">--:--:--</span></div>
+            <div style="display:flex; gap:8px; align-items:center; margin:0;"><label style="color:#fcd34d; font-size:10px; font-weight:bold;">CONSECUTIVO:</label><input type="text" id="input-factura" value="FAC-2026-690" style="width:120px; background:#12151c; border:1px solid #f59e0b; border-radius:6px; padding:6px; font-weight:bold; text-align:center; color:#fde68a; font-size:12px;" readonly></div>
+        </div>
+    </header>
+    <div class="wrapper-principal">
+        <div class="card-form">
+            <div class="section-title">Control de Caja Interno</div>
+            <div class="grid-2">
+                <div class="form-group"><label>Funcionario Operador</label><select id="input-usuario"><option value="Administrador">👤 Daniel García</option><option value="Aprendiz">👶 Aprendiz SENA</option></select></div>
+                <div class="form-group"><label>Destino de Fondos</label><select id="input-destino"><option value="Caja Física">💵 Efectivo (Caja Física)</option><option value="Bancolombia">🏦 Bancolombia</option><option value="Nequi">📱 Nequi</option><option value="Daviplata">💳 Daviplata</option></select></div>
+            </div>
+            <div class="section-title">Datos del Cliente</div>
+            <div class="grid-2">
+                <div class="form-group"><label>Nombre / Razón Social</label><input type="text" id="input-nombre" placeholder="Ej. Juan Pérez" required></div>
+                <div class="form-group"><label>CC / NIT</label><input type="text" id="input-documento" placeholder="Ej. 1045431631-1" required></div>
+            </div>
+            <div class="grid-2">
+                <div class="form-group"><label>Celular</label><input type="text" id="input-cel" placeholder="Ej. 3194886314"></div>
+                <div class="form-group"><label>Correo Electrónico</label><input type="email" id="input-email" placeholder="ejemplo@gmail.com"></div>
+            </div>
+            <div class="section-title">Especificación del Servicio y Aliados</div>
+            <div class="grid-3">
+                <div class="form-group"><label>Tipo de Trámite</label><input type="text" id="input-tramite" placeholder="Ej. RUT, Pasaporte" required></div>
+                <div class="form-group"><label>Tramitador Asociado</label><select id="input-tramitador"><option value="Ninguno">Ninguno</option><option value="Zulay">Zulay</option><option value="Elena">Elena</option><option value="Yeison">Yeison</option><option value="Viejito">Viejito</option><option value="Edgar">Edgar</option><option value="Juanpablo">Juanpablo</option><option value="Otro Tramitador">Otro Tramitador</option></select></div>
+                <div class="form-group"><label>M. Pago Tramitador</label><select id="pago-tramitador"><option value="Caja Física">💵 Efectivo</option><option value="Nequi">📱 Nequi</option><option value="Bancolombia">🏦 Bancolombia</option></select></div>
+            </div>
+            <div class="grid-2">
+                <div class="form-group"><label>Pago Entidad ($)</label><input type="number" id="val-entidad" value="0"></div>
+                <div class="form-group"><label>M. Pago Entidad</label><select id="pago-entidad"><option value="Ninguno">Ninguno</option><option value="Efectivo">Efectivo</option><option value="PSE / Tarjeta">PSE / Tarjeta</option></select></div>
+            </div>
+            <div class="section-title">Valores Contables y Comisiones</div>
+            <div class="grid-3">
+                <div class="form-group"><label>Precio Trámite ($)</label><input type="number" id="val-tramite" value="0" oninput="calcularTotal()" required></div>
+                <div class="form-group"><label>Comisión Tramitador ($)</label><input type="number" id="val-tramitador" value="0" required></div>
+                <div class="form-group"><label>Ganancia Interna Neto ($)</label><input type="number" id="val-ganancia" value="0" readonly></div>
+            </div>
+            <div class="section-title">Observaciones / Notas</div>
+            <div class="form-group"><textarea id="input-notas" rows="1" placeholder="Ingresa credenciales de acceso..."></textarea></div>
+        </div>
+        <div class="card-sidebar">
+            <div class="total-display"><div class="total-title">TOTAL RECIBIDO EN CAJA</div><div class="total-amount" id="label-total">$0</div></div>
+            <button onclick="guardarFacturaCompleta()" class="btn-green-excel">💾 REGISTRAR VENTAS</button>
+        </div>
+    </div>
+    <footer><div>&copy; 2026 RD GESTIONES EMPRESARIALES.</div><div>SEGURIDAD Y CALIDAD A SU SERVICIO</div></footer>
+    <script>
+        function actualizarReloj() { const ahora = new Date(); document.getElementById('txt-fecha').innerText = ahora.toLocaleDateString('es-CO'); document.getElementById('txt-hora').innerText = ahora.toLocaleTimeString('es-CO'); }
+        setInterval(actualizarReloj, 1000); actualizarReloj();
+        function calcularTotal() {
+            const valTramite = Number(document.getElementById('val-tramite').value) || 0;
+            const valTramitador = Number(document.getElementById('val-tramitador').value) || 0;
+            const valEntidad = Number(document.getElementById('val-entidad').value) || 0;
+            document.getElementById('val-ganancia').value = valTramite - valTramitador - valEntidad;
+            document.getElementById('label-total').innerText = "$" + valTramite.toLocaleString('es-CO');
+        }
+        document.getElementById('val-tramitador').addEventListener('input', calcularTotal);
+>>>>>>> e70e1e59c09505c7aed622a900999c3de65c1268
