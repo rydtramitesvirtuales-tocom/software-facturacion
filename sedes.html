@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Selección de Sede - RD GESTIONES</title>
+    <style>
+    body {
+        margin: 0;
+        padding: 0 50px;
+        height: 100vh;
+        width: 100vw;
+        background-image: linear-gradient(rgba(0, 0, 0, 0.40), rgba(0, 0, 0, 0.50)), url('logo.jpg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        display: flex;
+        justify-content: space-between; /* Una tarjeta a la izquierda y otra a la derecha */
+        align-items: center;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        box-sizing: border-box;
+    }
+
+    .tarjeta-sede-item {
+        background: rgba(14, 18, 27, 0.88);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 2px solid #d4af37;
+        border-radius: 16px;
+        padding: 35px 30px;
+        width: 280px;
+        text-align: center;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 0 0 20px rgba(212, 175, 55, 0.25);
+    }
+
+    .tarjeta-sede-item h3 {
+        color: #ffd700;
+        font-size: 18px;
+        margin: 0 0 20px 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .btn-sede {
+        width: 100%;
+        padding: 12px 15px;
+        background: rgba(26, 32, 44, 0.9);
+        border: 1px solid #d4af37;
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-sede:hover {
+        background: #d4af37;
+        color: #000000;
+        box-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
+        transform: translateY(-2px);
+    }
+</style>
+</head>
+<body>
+<body>
+
+    <!-- Tarjeta Izquierda -->
+    <div class="tarjeta-sede-item">
+        <h3>SEDE ALPUJARRA</h3>
+        <button class="btn-sede" onclick="seleccionarSede(1, 'Local Alpujarra')">
+            🏢 INGRESAR
+        </button>
+    </div>
+
+    <!-- Tarjeta Derecha -->
+    <div class="tarjeta-sede-item">
+        <h3>SEDE CARACAS</h3>
+        <button class="btn-sede" onclick="seleccionarSede(2, 'Local Caracas')">
+            🏢 INGRESAR
+        </button>
+    </div>
+
+    <script>
+        function seleccionarSede(id, nombre) {
+            localStorage.setItem('sede_activa_id', id);
+            localStorage.setItem('sede_activa_nombre', nombre);
+            window.location.href = 'menu.html';
+        }
+    </script>
+
+</body>
+</html>
