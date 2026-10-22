@@ -433,7 +433,6 @@ app.get('/api/balance-ingresos-gastos', (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`📡 Servidor Contable RD corriendo en: http://localhost:${PORT}`);
-=======
 const express = require('express');
 const mysql = require('mysql2');
 const session = require('express-session');
