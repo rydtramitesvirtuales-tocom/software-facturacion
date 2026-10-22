@@ -569,9 +569,9 @@ app.post('/login', (req, res) => {
         req.session.nombreUsuario = usuarioEncontrado.nombre_real;
         req.session.rolUsuario = usuarioEncontrado.rol;
         res.redirect('/seleccionar-sede');
-    } else {
-        return res.send("<script>alert('Usuario o contraseña incorrectos en RD Gestiones.'); window.location.href='/login.html';</script>");
-    }
+ } else {
+    return res.send("<script>alert('Usuario o contraseña incorrectos en RD Gestiones.'); window.location.href='/login.html';</script>");
+}
 });
 
 app.get('/logout', (req, res) => {
