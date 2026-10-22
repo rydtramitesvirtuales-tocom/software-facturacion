@@ -19,7 +19,22 @@ app.use((req, res, next) => {
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     next();
 });
+// Conexión a la Base de Datos
+const conexion = mysql.createConnection({
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'centro_tramites_daniel',
+    port: process.env.DB_PORT || 3306
+});
 
+conexion.connect((error) => {
+    if (error) {
+        console.error("❌ Error de conexión en base de datos: " + error.message);
+        return;
+    }
+    console.log("🚀 ¡Motor Contable Automatizado de RD Gestiones Activo!");
+});
 // FUNCIÓN PROTECTORA: Revisa si el dispositivo tiene sesión activa
 function verificarAutenticacion(req, res, next) {
     if (req.session && req.session.usuarioAutorizado) {
@@ -425,20 +440,6 @@ function verificarAutenticacion(req, res, next) {
     res.redirect('/login.html');
 }
 
-// CONEXIÓN A MYSQL EN XAMPP
-const conexion = mysql.createConnection({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',      
-    password: process.env.DB_PASSWORD || '',      
-    database: process.env.DB_NAME || 'centro_tramites_daniel' 
-});
-conexion.connect((error) => {
-    if (error) {
-        console.error("❌ Error de conexión en base de datos: " + error.message);
-        return;
-    }
-    console.log("🚀 ¡Motor Contable Automatizado de RD Gestiones Activo!");
-});
 // PROTECCIÓN DE ARCHIVOS HTML
 app.get('/', verificarAutenticacion, (req, res) => res.sendFile(__dirname + '/menu.html'));
 app.get('/consola.html', verificarAutenticacion, (req, res) => res.sendFile(__dirname + '/consola.html'));
