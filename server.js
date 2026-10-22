@@ -865,8 +865,9 @@ app.get('/api/balance-ingresos-gastos', (req, res) => {
         });
     });
 });
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-    console.log(`📡 Servidor Contable RD corriendo en: http://localhost:${PORT}`);
->>>>>>> e70e1e59c09505c7aed622a900999c3de65c1268
+    console.log(`📡 Servidor Contable RD corriendo en el puerto ${PORT}`);
+    console.log(`🚀 ¡Motor Contable Automatizado de RD Gestiones Activo!`);
 });
