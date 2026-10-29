@@ -444,7 +444,11 @@ function generarReporteSede() {
         });
         try {
             const respuestaSesion = await fetch(apiUrl('api/sesion'));
-            if (!respuestaSesion.ok) throw new Error('La sesión expiró. Inicia sesión nuevamente.');
+            if (respuestaSesion.status === 401) {
+                window.location.href = 'login.html';
+                return;
+            }
+            if (!respuestaSesion.ok) throw new Error('No se pudo validar la sesión.');
             const sesion = await respuestaSesion.json();
             const elUsuario = document.getElementById('nombreUsuarioActivo');
             if (elUsuario) elUsuario.innerText = sesion.nombre;
@@ -453,8 +457,18 @@ function generarReporteSede() {
                 document.querySelectorAll('.metric-card').forEach(elemento => elemento.remove());
                 return;
             }
+        } catch (error) {
+            console.error('No se pudo validar la sesión:', error);
+            alert('No se pudo validar la sesión. Comprueba tu conexión e inténtalo nuevamente.');
+            return;
+        }
 
+        try {
             const respuestaIndicadores = await fetch(apiUrl(`api/indicadores-dia?_t=${Date.now()}`));
+            if (respuestaIndicadores.status === 401) {
+                window.location.href = 'login.html';
+                return;
+            }
             if (!respuestaIndicadores.ok) throw new Error('No se pudieron cargar los indicadores diarios.');
             const data = await respuestaIndicadores.json();
             if (!data.exito) throw new Error(data.error || 'No se pudieron cargar los indicadores diarios.');
@@ -463,8 +477,8 @@ function generarReporteSede() {
             if (elVentas) elVentas.innerText = "$" + Number(data.ventasBrutas).toLocaleString('es-CO');
             if (elUtilidad) elUtilidad.innerText = "$" + Number(data.utilidadNeta).toLocaleString('es-CO');
         } catch (error) {
-            console.error('No se pudo validar la sesión:', error);
-            window.location.href = 'login.html';
+            console.error('No se pudieron cargar los indicadores diarios:', error);
+            alert('Ingresaste correctamente, pero no se pudieron cargar los indicadores. Tu sesión sigue activa; revisa la conexión y vuelve a intentarlo.');
         }
     });
 </script>
