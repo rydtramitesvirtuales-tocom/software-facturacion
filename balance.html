@@ -3,171 +3,554 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RD Gestiones - Balance Mensual de Caja</title>
+    <title>RD Gestiones - Balance y Consolidado Mensual</title>
     <style>
-        body { background-color: #0c1017; color: #ffffff; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background-color: #161b22; border: 1px solid #28a745; border-radius: 12px; padding: 35px; width: 550px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); text-align: center; }
-        h2 { color: #28a745; margin: 0 0 5px 0; font-size: 22px; letter-spacing: 1px; }
-        .subtitle { color: #8b949e; font-size: 13px; margin: 0 0 30px 0; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
-        .box { background-color: #0d1117; padding: 20px; border-radius: 8px; border: 1px solid #30363d; text-align: left; }
-        .box h3 { margin: 0 0 15px 0; font-size: 15px; letter-spacing: 0.5px; border-bottom: 1px solid #21262d; padding-bottom: 8px; }
-        .box p { margin: 8px 0; font-size: 13px; color: #c9d1d9; display: flex; justify-content: space-between; }
-        .btn { width: 100%; padding: 12px; background-color: #1f2937; border: 1px solid #30363d; color: #c9d1d9; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; text-decoration: none; display: block; box-sizing: border-box; transition: border-color 0.3s; }
-        .btn:hover { border-color: #28a745; color: white; }
+        :root {
+            --bg-primary: #0b0f19;
+            --bg-card: #131b2e;
+            --gold-primary: #d4af37;
+            --gold-light: #fff3c4;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-gold: rgba(212, 175, 55, 0.3);
+            --color-success: #2ecc71;
+            --color-danger: #e74c3c;
+            --color-info: #3498db;
+        }
+
+        body {
+            background: radial-gradient(circle at top, #111726 0%, var(--bg-primary) 70%);
+            color: var(--text-main);
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .dashboard-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header-ejecutivo {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            padding: 20px 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border-gold);
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .titulo-principal {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff3c4 0%, #d4af37 50%, #99750f 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0 0 5px 0;
+            letter-spacing: 1px;
+        }
+
+        .subtitulo-principal {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            letter-spacing: 0.8px;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        .selector-periodo {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .selector-periodo select {
+            background: #0b0f19;
+            color: var(--gold-light);
+            border: 1px solid var(--border-gold);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 18px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border-top: 3px solid var(--gold-primary);
+        }
+
+        .metric-card.success { border-top-color: var(--color-success); }
+        .metric-card.danger { border-top-color: var(--color-danger); }
+        .metric-card.info { border-top-color: var(--color-info); }
+
+        .metric-title {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .metric-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .metric-card.success .metric-value { color: var(--color-success); }
+        .metric-card.danger .metric-value { color: var(--color-danger); }
+        .metric-card.gold .metric-value { color: var(--gold-light); }
+
+        .resumen-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        @media (max-width: 900px) {
+            .resumen-grid { grid-template-columns: 1fr; }
+        }
+
+        .card-seccion {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .balance-note {
+            margin-bottom: 20px;
+            border-left: 4px solid var(--color-info);
+            line-height: 1.5;
+        }
+
+        .balance-note strong {
+            display: block;
+            color: var(--text-main);
+            margin-bottom: 5px;
+        }
+
+        .balance-note p { margin: 0; }
+        .balance-note p + p { margin-top: 6px; }
+
+        .section-title {
+            font-size: 0.88rem;
+            color: var(--gold-primary);
+            margin: 0 0 15px 0;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--border-gold);
+            padding-bottom: 10px;
+        }
+
+        .tabla-resumen {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .tabla-resumen th {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            text-align: left;
+            padding: 8px 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .tabla-resumen td {
+            padding: 12px 10px;
+            font-size: 0.85rem;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+
+        @media (max-width: 700px) {
+            .selector-periodo { flex-wrap: wrap; }
+        }
+
+        .action-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-regresar {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(212, 175, 55, 0.08);
+            color: #f3e5ab;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.82rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-regresar:hover {
+            background: linear-gradient(135deg, #d4af37 0%, #aa820a 100%);
+            color: #07090e;
+        }
+
+        .btn-pdf {
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            color: #111;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 0.82rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(246, 211, 101, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .btn-pdf:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        @page {
+            size: A4 portrait;
+            margin: 12mm;
+        }
+        @media print {
+            html, body {
+                width: auto;
+                min-height: 0;
+                margin: 0;
+                padding: 0;
+                background: #fff !important;
+                color: #000 !important;
+            }
+            .dashboard-wrapper { width: 100%; max-width: none; margin: 0; }
+            .action-footer, .selector-periodo { display: none !important; }
+            .header-ejecutivo {
+                margin-bottom: 12px;
+                padding: 10px 12px;
+                background: #f8f9fa;
+                border: 1px solid #ddd;
+                box-shadow: none;
+                color: #000;
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            .titulo-principal { -webkit-text-fill-color: #000; }
+            .metrics-grid {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                gap: 7px;
+                margin-bottom: 12px;
+            }
+            .metric-card {
+                min-width: 0;
+                padding: 8px;
+                background: #f8f9fa;
+                border: 1px solid #ddd;
+                box-shadow: none;
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            .metric-title { font-size: 7px; }
+            .metric-value { color: #111 !important; font-size: 11px; overflow-wrap: anywhere; }
+            .card-seccion {
+                padding: 10px;
+                background: #fff;
+                border: 1px solid #ddd;
+                box-shadow: none;
+                color: #000;
+            }
+            .balance-note { border-left: 4px solid #3498db; }
+            .balance-note strong { color: #000; }
+            .resumen-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .section-title {
+                color: #111;
+                break-after: avoid;
+                page-break-after: avoid;
+            }
+            .tabla-resumen { width: 100%; }
+            .tabla-resumen thead { display: table-header-group; }
+            .tabla-resumen tr { break-inside: avoid; page-break-inside: avoid; }
+            .tabla-resumen th, .tabla-resumen td { padding: 5px; font-size: 8px; color: #222; }
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2>📅 BALANCE MENSUAL DE CAJA</h2>
-        <p class="subtitle">Flujos contables liquidados en el mes de Efectivo vs. Bancos</p>
+
+    <div class="dashboard-wrapper">
         
-        <div class="grid">
-            <!-- Bloque Efectivo -->
-            <div class="box" style="border-color: #ffd700;">
-                <h3 style="color: #ffd700;">💵 EFECTIVO (CAJA)</h3>
-                <p>Ingresos: <strong style="color: #2ea44f;" id="efeIng">$0</strong></p>
-                <p>Egresos: <strong style="color: #f85149;" id="efeEgr">$0</strong></p>
-                <p style="margin-top: 15px; font-weight: bold; border-top: 1px dotted #30363d; padding-top: 10px; font-size: 14px;">
-                    Caja Real: <span id="efeTotal" style="color: white;">$0</span>
-                </p>
+        <div class="header-ejecutivo">
+            <div>
+                <h1 class="titulo-principal">🏢 RD GESTIONES EMPRESARIALES</h1>
+                <p class="subtitulo-principal">Balance Gerencial y Consolidado Mensual de Operaciones</p>
             </div>
-            <!-- Bloque Bancos -->
-            <div class="box" style="border-color: #007bff;">
-                <h3 style="color: #007bff;">📱 CUENTAS DIGITALES</h3>
-                <p>Ingresos: <strong style="color: #2ea44f;" id="ctaIng">$0</strong></p>
-                <p>Egresos: <strong style="color: #f85149;" id="ctaEgr">$0</strong></p>
-                <p style="margin-top: 15px; font-weight: bold; border-top: 1px dotted #30363d; padding-top: 10px; font-size: 14px;">
-                    Banco Real: <span id="ctaTotal" style="color: white;">$0</span>
-                </p>
+            <div class="selector-periodo">
+                <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">PERIODO:</label>
+                <select id="selectMes" onchange="cargarBalanceMensual()"></select>
+                <a class="btn-pdf" href="control_diario.html" title="Conciliar cada cuenta y registrar traslados">Cuadre diario por cuenta</a>
+                <button type="button" class="btn-pdf" id="aperturaMensualCaja" onclick="editarSaldoInicialMensual('caja')">Apertura mensual caja</button>
+                <button type="button" class="btn-pdf" id="aperturaMensualBanco" onclick="editarSaldoInicialMensual('banco')">Apertura mensual banco</button>
             </div>
         </div>
-        
-        <!-- Ruta de retorno corregida -->
-        <a href="http://localhost/FACTURADOR/menu.html" class="btn">🏠 REGRESAR AL MENÚ</a>
+
+        <div class="metrics-grid">
+            <div class="metric-card gold">
+                <div class="metric-title">Total Ingresos</div>
+                <div class="metric-value" id="valTotalIngresos">$0</div>
+            </div>
+            <div class="metric-card danger">
+                <div class="metric-title">Gastos Trámites</div>
+                <div class="metric-value" id="valGastosTramites">$0</div>
+            </div>
+            <div class="metric-card info">
+                <div class="metric-title">Ingresos menos pagos de trámites</div>
+                <div class="metric-value" id="valTotalCaja">$0</div>
+            </div>
+            <div class="metric-card danger">
+                <div class="metric-title">Gastos del Local</div>
+                <div class="metric-value" id="valGastosLocal">$0</div>
+            </div>
+            <div class="metric-card success">
+                <div class="metric-title">Neto Real</div>
+                <div class="metric-value" id="valNetoReal">$0</div>
+            </div>
+            <div class="metric-card success">
+                <div class="metric-title">Saldo final de efectivo (Caja + Fondo)</div>
+                <div class="metric-value" id="valEfectivoCaja">$0</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-title">Saldo final digital (Banco + Nequi + otros)</div>
+                <div class="metric-value" id="valDineroBanco">$0</div>
+            </div>
+            <div class="metric-card success">
+                <div class="metric-title">Ingresos en Efectivo / Caja</div>
+                <div class="metric-value" id="valIngresosCaja">$0</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-title">Ingresos por Transferencia / Banco</div>
+                <div class="metric-value" id="valIngresosBanco">$0</div>
+            </div>
+        </div>
+        <div id="notaUltimoCierre" class="card-seccion balance-note" hidden></div>
+        <div id="alertaSinClasificar" class="card-seccion" hidden style="margin-bottom: 20px; color: #f6d365;"></div>
+
+        <div class="resumen-grid">
+            <div class="card-seccion">
+                <div class="section-title">📊 INGRESOS AGRUPADOS POR SERVICIO</div>
+                <table class="tabla-resumen">
+                    <thead>
+                        <tr>
+                            <th>TIPO DE TRÁMITE / SERVICIO</th>
+                            <th style="text-align: center;">CANTIDAD</th>
+                            <th style="text-align: right;">TOTAL RECAUDADO</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resumenServiciosBody">
+                        <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Cargando consolidado...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card-seccion">
+                <div class="section-title">🏷️ GASTOS OPERATIVOS POR CATEGORÍA</div>
+                <table class="tabla-resumen">
+                    <thead>
+                        <tr>
+                            <th>CATEGORÍA DE GASTO</th>
+                            <th style="text-align: center;">REGISTROS</th>
+                            <th style="text-align: right;">MONTO TOTAL</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resumenGastosBody">
+                        <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Cargando gastos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="action-footer">
+            <a href="menu.html" class="btn-regresar">🏠 REGRESAR AL MENÚ</a>
+            <button class="btn-pdf" onclick="window.print()">🖨️ IMPRIMIR O GUARDAR PDF</button>
+        </div>
+
     </div>
 
     <script>
-        // Guardamos la referencia al fetch original
         const originalFetchBalance = window.fetch;
+        const escaparHtml = valor => String(valor ?? '').replace(/[&<>"']/g, caracter => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        })[caracter]);
 
-        // Interceptamos el fetch para apuntar al servidor Node.js en el puerto 3000 con la sede activa
+        function inicializarSelectorMes() {
+            const selector = document.getElementById('selectMes');
+            const ahora = new Date();
+            for (let desplazamiento = 0; desplazamiento < 12; desplazamiento++) {
+                const fecha = new Date(ahora.getFullYear(), ahora.getMonth() - desplazamiento, 1);
+                const valor = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
+                const etiqueta = new Intl.DateTimeFormat('es-CO', {
+                    month: 'long',
+                    year: 'numeric'
+                }).format(fecha);
+                const opcion = document.createElement('option');
+                opcion.value = valor;
+                opcion.textContent = etiqueta.charAt(0).toLocaleUpperCase('es-CO') + etiqueta.slice(1);
+                selector.appendChild(opcion);
+            }
+            cargarBalanceMensual();
+        }
+
         window.fetch = function(url, options) {
-            const sedeId = localStorage.getItem('sede_activa_id') || 1;
+            const mesSeleccionado = document.getElementById('selectMes').value;
             if (typeof url === 'string' && url.includes('/api/reporte-contable-mensual')) {
-                url = `http://localhost:3000/api/reporte-contable-mensual?sedeId=${sedeId}`;
+                url = new URL(`api/reporte-contable-mensual?mes=${encodeURIComponent(mesSeleccionado)}`, window.location.href);
             }
             return originalFetchBalance(url, options);
         };
 
-        // Consultamos la API mensual al cargar la pantalla
-        fetch('/api/reporte-contable-mensual')
-            .then(res => {
-                if (res.status === 403) {
-                    alert("⛔ Acceso Denegado: Módulo financiero exclusivo para el Administrador.");
-                    window.location.href = 'http://localhost/FACTURADOR/menu.html';
-                    throw new Error();
-                }
-                return res.json();
-            })
-            .then(data => {
-                if (data && data.exito) {
-                    document.getElementById('efeIng').innerText = "$" + Number(data.efectivo_ingresos || 0).toLocaleString('es-CO');
-                    document.getElementById('efeEgr').innerText = "$" + Number(data.efectivo_egresos || 0).toLocaleString('es-CO');
-                    document.getElementById('efeTotal').innerText = "$" + (Number(data.efectivo_ingresos || 0) - Number(data.efectivo_egresos || 0)).toLocaleString('es-CO');
-                    
-                    document.getElementById('ctaIng').innerText = "$" + Number(data.cuentas_ingresos || 0).toLocaleString('es-CO');
-                    document.getElementById('ctaEgr').innerText = "$" + Number(data.cuentas_egresos || 0).toLocaleString('es-CO');
-                    document.getElementById('ctaTotal').innerText = "$" + (Number(data.cuentas_ingresos || 0) - Number(data.cuentas_egresos || 0)).toLocaleString('es-CO');
-                }
-            })
-            .catch(err => console.error("Error al cargar flujos:", err));
-    </script>
-</body>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RD Gestiones - Balance Mensual de Caja</title>
-    <style>
-        body { background-color: #0c1017; color: #ffffff; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background-color: #161b22; border: 1px solid #28a745; border-radius: 12px; padding: 35px; width: 550px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); text-align: center; }
-        h2 { color: #28a745; margin: 0 0 5px 0; font-size: 22px; letter-spacing: 1px; }
-        .subtitle { color: #8b949e; font-size: 13px; margin: 0 0 30px 0; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
-        .box { background-color: #0d1117; padding: 20px; border-radius: 8px; border: 1px solid #30363d; text-align: left; }
-        .box h3 { margin: 0 0 15px 0; font-size: 15px; letter-spacing: 0.5px; border-bottom: 1px solid #21262d; padding-bottom: 8px; }
-        .box p { margin: 8px 0; font-size: 13px; color: #c9d1d9; display: flex; justify-content: space-between; }
-        .btn { width: 100%; padding: 12px; background-color: #1f2937; border: 1px solid #30363d; color: #c9d1d9; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; text-decoration: none; display: block; box-sizing: border-box; transition: border-color 0.3s; }
-        .btn:hover { border-color: #28a745; color: white; }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <h2>📅 BALANCE MENSUAL DE CAJA</h2>
-        <p class="subtitle">Flujos contables liquidados en el mes de Efectivo vs. Bancos</p>
-        
-        <div class="grid">
-            <!-- Bloque Efectivo -->
-            <div class="box" style="border-color: #ffd700;">
-                <h3 style="color: #ffd700;">💵 EFECTIVO (CAJA)</h3>
-                <p>Ingresos: <strong style="color: #2ea44f;" id="efeIng">$0</strong></p>
-                <p>Egresos: <strong style="color: #f85149;" id="efeEgr">$0</strong></p>
-                <p style="margin-top: 15px; font-weight: bold; border-top: 1px dotted #30363d; padding-top: 10px; font-size: 14px;">
-                    Caja Real: <span id="efeTotal" style="color: white;">$0</span>
-                </p>
-            </div>
-            <!-- Bloque Bancos -->
-            <div class="box" style="border-color: #007bff;">
-                <h3 style="color: #007bff;">📱 CUENTAS DIGITALES</h3>
-                <p>Ingresos: <strong style="color: #2ea44f;" id="ctaIng">$0</strong></p>
-                <p>Egresos: <strong style="color: #f85149;" id="ctaEgr">$0</strong></p>
-                <p style="margin-top: 15px; font-weight: bold; border-top: 1px dotted #30363d; padding-top: 10px; font-size: 14px;">
-                    Banco Real: <span id="ctaTotal" style="color: white;">$0</span>
-                </p>
-            </div>
-        </div>
-        
-        <!-- Ruta de retorno corregida -->
-        <a href="http://localhost/FACTURADOR/menu.html" class="btn">🏠 REGRESAR AL MENÚ</a>
-    </div>
+        function cargarBalanceMensual() {
+            fetch('/api/reporte-contable-mensual')
+                .then(res => {
+                    if (res.status === 403) {
+                        alert("⛔ Acceso Denegado: Módulo financiero exclusivo para el Administrador.");
+                        window.location.href = 'menu.html';
+                        throw new Error();
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    if (data && data.exito) {
+                        document.getElementById('valTotalIngresos').innerText = "$" + Number(data.total_ingresos || 0).toLocaleString('es-CO');
+                        document.getElementById('valGastosTramites').innerText = "$" + Number(data.gastos_tramites || 0).toLocaleString('es-CO');
+                        document.getElementById('valTotalCaja').innerText = "$" + Number(data.total_caja || 0).toLocaleString('es-CO');
+                        document.getElementById('valGastosLocal').innerText = "$" + Number(data.gastos_local || 0).toLocaleString('es-CO');
+                        document.getElementById('valNetoReal').innerText = "$" + Number(data.neto_real || 0).toLocaleString('es-CO');
+                        document.getElementById('valEfectivoCaja').innerText = "$" + Number(data.efectivo_caja || 0).toLocaleString('es-CO');
+                        document.getElementById('valDineroBanco').innerText = "$" + Number(data.dinero_banco || 0).toLocaleString('es-CO');
+                        document.getElementById('valIngresosCaja').innerText = "$" + Number(data.ingresos_efectivo || 0).toLocaleString('es-CO');
+                        document.getElementById('valIngresosBanco').innerText = "$" + Number(data.ingresos_banco || 0).toLocaleString('es-CO');
+                        const usaControlDiario = data.origen_saldos === 'control_diario';
+                        document.getElementById('aperturaMensualCaja').hidden = usaControlDiario;
+                        document.getElementById('aperturaMensualBanco').hidden = usaControlDiario;
+                        const notaUltimoCierre = document.getElementById('notaUltimoCierre');
+                        notaUltimoCierre.hidden = false;
+                        let detalleSaldos;
+                        if (usaControlDiario) {
+                            detalleSaldos = `Fuente única: Control diario por cuenta. Corte al ${data.fecha_corte_saldos}; efectivo = Caja + Fondo físico y saldo digital = Bancolombia + Nequi + otros digitales. La base dejada en caja en el último arqueo se usa como apertura del día siguiente.${data.fecha_ultimo_cierre ? ` Último cuadre registrado: ${data.fecha_ultimo_cierre}.` : ' No hay un cierre guardado en el periodo; se muestran saldos esperados según apertura y movimientos.'}`;
+                        } else if (data.fecha_ultimo_cierre) {
+                            detalleSaldos = `Fuente única: balance histórico conciliado desde el cierre diario anterior (${data.fecha_ultimo_cierre}) y los movimientos posteriores.`;
+                        } else {
+                            detalleSaldos = 'Fuente única: balance histórico de Caja y Banco con sus cierres y aperturas anteriores. Este periodo es anterior al inicio del Control diario por cuenta.';
+                        }
+                        const tituloNota = document.createElement('strong');
+                        tituloNota.textContent = 'Cómo interpretar el balance';
+                        const aclaracionSaldos = document.createElement('p');
+                        aclaracionSaldos.textContent = 'Los saldos finales se calculan desde una sola fuente para el periodo. Los gastos del local son egresos y la utilidad neta es un resultado del periodo; ninguno de estos valores es, por sí mismo, un saldo de caja.';
+                        const detalleNota = document.createElement('p');
+                        detalleNota.textContent = detalleSaldos;
+                        notaUltimoCierre.replaceChildren(tituloNota, aclaracionSaldos, detalleNota);
+                        const alertaSinClasificar = document.getElementById('alertaSinClasificar');
+                        const movimientosSinClasificar = Number(data.movimientos_sin_clasificar || 0);
+                        alertaSinClasificar.hidden = movimientosSinClasificar === 0;
+                        alertaSinClasificar.textContent = movimientosSinClasificar
+                            ? `Hay $${movimientosSinClasificar.toLocaleString('es-CO')} en operaciones con medio de pago antiguo o no reconocido. Revísalas antes de cerrar el periodo.`
+                            : '';
 
-    <script>
-        // Guardamos la referencia al fetch original
-        const originalFetchBalance = window.fetch;
+                        const tbodyServicios = document.getElementById('resumenServiciosBody');
+                        tbodyServicios.innerHTML = "";
+                        if (data.resumen_servicios && data.resumen_servicios.length > 0) {
+                            data.resumen_servicios.forEach(item => {
+                                tbodyServicios.innerHTML += `
+                                    <tr>
+                                        <td><strong>${escaparHtml(item.tramite)}</strong></td>
+                                        <td style="text-align: center;">${Number(item.cantidad || 0).toLocaleString('es-CO')}</td>
+                                        <td style="text-align: right; font-weight: 600; color: var(--color-success);">$${Number(item.total).toLocaleString('es-CO')}</td>
+                                    </tr>
+                                `;
+                            });
+                        } else {
+                            tbodyServicios.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Sin ingresos agrupados en este periodo.</td></tr>`;
+                        }
 
-        // Interceptamos el fetch para apuntar al servidor Node.js en el puerto 3000 con la sede activa
-        window.fetch = function(url, options) {
-            const sedeId = localStorage.getItem('sede_activa_id') || 1;
-            if (typeof url === 'string' && url.includes('/api/reporte-contable-mensual')) {
-                url = `http://localhost:3000/api/reporte-contable-mensual?sedeId=${sedeId}`;
+                        const tbodyGastos = document.getElementById('resumenGastosBody');
+                        tbodyGastos.innerHTML = "";
+                        if (data.resumen_gastos && data.resumen_gastos.length > 0) {
+                            data.resumen_gastos.forEach(gasto => {
+                                tbodyGastos.innerHTML += `
+                                    <tr>
+                                        <td><strong>${escaparHtml(gasto.categoria)}</strong></td>
+                                        <td style="text-align: center;">${Number(gasto.cantidad || 0).toLocaleString('es-CO')}</td>
+                                        <td style="text-align: right; font-weight: 600; color: var(--color-danger);">$${Number(gasto.total).toLocaleString('es-CO')}</td>
+                                    </tr>
+                                `;
+                            });
+                        } else {
+                            tbodyGastos.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Sin gastos registrados en este periodo.</td></tr>`;
+                        }
+                    }
+                })
+                .catch(err => console.error("Error al cargar el resumen gerencial:", err));
+        }
+
+        async function editarSaldoInicialMensual(cuenta) {
+            const nombreCuenta = cuenta === 'caja' ? 'caja' : 'banco';
+            const periodo = document.getElementById('selectMes').value;
+            const etiquetaPeriodo = document.getElementById('selectMes').selectedOptions[0].text;
+            const monto = prompt(`Ingresa el saldo inicial real de ${nombreCuenta} para ${etiquetaPeriodo}:`);
+            if (monto === null) return;
+            const valor = Number(monto);
+            if (!monto.trim() || !Number.isFinite(valor) || valor < 0) {
+                alert('Ingresa un monto válido, igual o mayor que cero.');
+                return;
             }
-            return originalFetchBalance(url, options);
-        };
+            const motivo = prompt('Explica por qué se establece o corrige este saldo inicial:');
+            if (motivo === null || motivo.trim().length < 5) {
+                alert('El motivo debe tener al menos 5 caracteres. No se guardaron cambios.');
+                return;
+            }
+            try {
+                const response = await originalFetchBalance(new URL('api/saldos-iniciales', window.location.href), {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cuenta, monto: valor, motivo, periodo })
+                });
+                const data = await response.json();
+                if (!response.ok || !data.exito) {
+                    throw new Error(data.mensaje || 'No se pudo guardar el saldo inicial.');
+                }
+                cargarBalanceMensual();
+            } catch (error) {
+                alert(error.message);
+            }
+        }
 
-        // Consultamos la API mensual al cargar la pantalla
-        fetch('/api/reporte-contable-mensual')
-            .then(res => {
-                if (res.status === 403) {
-                    alert("⛔ Acceso Denegado: Módulo financiero exclusivo para el Administrador.");
-                    window.location.href = 'http://localhost/FACTURADOR/menu.html';
-                    throw new Error();
-                }
-                return res.json();
-            })
-            .then(data => {
-                if (data && data.exito) {
-                    document.getElementById('efeIng').innerText = "$" + Number(data.efectivo_ingresos || 0).toLocaleString('es-CO');
-                    document.getElementById('efeEgr').innerText = "$" + Number(data.efectivo_egresos || 0).toLocaleString('es-CO');
-                    document.getElementById('efeTotal').innerText = "$" + (Number(data.efectivo_ingresos || 0) - Number(data.efectivo_egresos || 0)).toLocaleString('es-CO');
-                    
-                    document.getElementById('ctaIng').innerText = "$" + Number(data.cuentas_ingresos || 0).toLocaleString('es-CO');
-                    document.getElementById('ctaEgr').innerText = "$" + Number(data.cuentas_egresos || 0).toLocaleString('es-CO');
-                    document.getElementById('ctaTotal').innerText = "$" + (Number(data.cuentas_ingresos || 0) - Number(data.cuentas_egresos || 0)).toLocaleString('es-CO');
-                }
-            })
-            .catch(err => console.error("Error al cargar flujos:", err));
+        document.addEventListener("DOMContentLoaded", inicializarSelectorMes);
     </script>
 </body>
 </html>

@@ -63,7 +63,7 @@
 </head>
 <body>
 
-    <!-- Tarjeta Izquierda -->
+    <!-- Tarjeta Izquierda (Sede Alpujarra) -->
     <div class="tarjeta-sede-item">
         <h3>SEDE ALPUJARRA</h3>
         <button class="btn-sede" onclick="seleccionarSede(1, 'Local Alpujarra')">
@@ -71,7 +71,7 @@
         </button>
     </div>
 
-    <!-- Tarjeta Derecha -->
+    <!-- Tarjeta Derecha (Sede Caracas) -->
     <div class="tarjeta-sede-item">
         <h3>SEDE CARACAS</h3>
         <button class="btn-sede" onclick="seleccionarSede(2, 'Local Caracas')">
@@ -80,10 +80,20 @@
     </div>
 
     <script>
-        function seleccionarSede(id, nombre) {
-            localStorage.setItem('sede_activa_id', id);
-            localStorage.setItem('sede_activa_nombre', nombre);
-            window.location.href = 'menu.html';
+        async function seleccionarSede(id, nombre) {
+            try {
+                const response = await fetch(new URL('api/sede-activa', window.location.href), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sedeId: id })
+                });
+                if (!response.ok) throw new Error('No se pudo guardar la sede en la sesión.');
+                localStorage.setItem('sede_activa_id', String(id));
+                localStorage.setItem('sede_activa_nombre', nombre);
+                window.location.href = 'menu.html';
+            } catch (error) {
+                alert(error.message);
+            }
         }
     </script>
 

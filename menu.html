@@ -274,136 +274,199 @@
         <div class="header-user-zone">
             <div class="user-active">Usuario activo: <strong id="nombreUsuarioActivo">Daniel García</strong></div>
             <button class="btn-change-sede" onclick="window.location.href='sedes.html';">🏢 CAMBIAR SEDE</button>
-            <button class="btn-logout" onclick="localStorage.clear(); window.location.href='login.html';">🔒 CERRAR SESIÓN</button>
+            <button class="btn-logout" onclick="localStorage.removeItem('sede_activa_id'); window.location.href='logout';">🔒 CERRAR SESIÓN</button>
         </div>
     </header>
 
-    <main class="main-layout">
-        <div class="menu-column">
-            <a href="consola.html" class="menu-btn">
-                <div class="icon">📄</div>
-                <div class="menu-btn-text">
-                    <h3>Ir al Facturador</h3>
-                    <p>Registro de trámites, abonos y control de saldos diario.</p>
-                </div>
-            </a>
-            <a href="reporte.html" class="menu-btn">
-                <div class="icon">📊</div>
-                <div class="menu-btn-text">
-                    <h3>Reporte de Ventas y Gastos</h3>
-                    <p>Relación diaria de ganancias, pagos a entidades y tramitadores.</p>
-                </div>
-            </a>
-            <a href="ingresos_gastos.php" class="menu-btn">
-                <div class="icon">⚖️</div>
-                <div class="menu-btn-text">
-                    <h3>Control de Ingresos y Gastos</h3>
-                    <p>Registro manual de gastos y flujo de caja del facturador.</p>
-                </div>
-            </a>
-        </div>
-
-        <div class="center-panel">
-            <div class="logo-placeholder">💼</div>
-            <div class="company-info">
-                <h2>RD GESTIONES EMPRESARIALES</h2>
-                <p>CRA 52 # 42 -60 LOCAL 108</p>
-                <p>📞 3017222991</p>
+   <main class="main-layout">
+    <!-- COLUMNA IZQUIERDA (3 Botones) -->
+    <div class="menu-column">
+       <a href="control_diario.html" class="menu-btn" data-admin-only>
+            <div class="icon">🧾</div>
+            <div class="menu-btn-text">
+                <h3>Cuadre diario por cuenta</h3>
+                <p>Controla caja diaria, fondo mensual, Bancolombia y Nequi por separado.</p>
             </div>
-            <div class="metrics-container">
-                <div class="metric-card">
-                    <div class="metric-title">💰 Ventas Brutas Hoy</div>
-                    <div class="metric-value text-green" id="menuVentas">$0</div>
-                </div>
-                <div class="metric-card border-yellow">
-                    <div class="metric-title">📈 Utilidad Neto Hoy</div>
-                    <div class="metric-value text-yellow" id="menuUtilidad">$0</div>
-                </div>
+        </a>
+       <a href="consola2.html" class="menu-btn">
+            <div class="icon">📄</div>
+            <div class="menu-btn-text">
+                <h3>Ir al Facturador</h3>
+                <p>Registro de trámites, abonos y control de saldos diario.</p>
+            </div>
+        </a>
+        <a href="reporte.html" class="menu-btn" data-admin-only>
+            <div class="icon">📊</div>
+            <div class="menu-btn-text">
+                <h3>Reporte de Ventas y Gastos</h3>
+                <p>Relación diaria de ganancias, pagos a entidades y tramitadores.</p>
+            </div>
+        </a>
+        <a href="ingresos-gastos.html" class="menu-btn" data-admin-only>
+            <div class="icon">⚖️</div>
+            <div class="menu-btn-text">
+                <h3>Control de Ingresos y Gastos</h3>
+                <p>Registro manual de gastos y flujo de caja del facturador.</p>
+            </div>
+        </a>
+    </div>
+
+    <!-- PANEL CENTRAL (Mantén aquí tu panel de la sede y métricas) -->
+    <div class="center-panel">
+        <div class="logo-placeholder">💼</div>
+        <div class="company-info">
+            <h2>RD GESTIONES EMPRESARIALES</h2>
+            <p>CRA 52 # 42 -60 LOCAL 108</p>
+            <p>📞 3017222991</p>
+        </div>
+        <div class="metrics-container">
+            <div class="metric-card">
+                <div class="metric-title">💰 Ventas Brutas Hoy</div>
+                <div class="metric-value text-green" id="menuVentas">$0</div>
+            </div>
+            <div class="metric-card border-yellow">
+                <div class="metric-title">📈 Utilidad Neto Hoy</div>
+                <div class="metric-value text-yellow" id="menuUtilidad">$0</div>
             </div>
         </div>
+    </div>
 
-        <div class="menu-column">
-            <a href="balance.html" class="menu-btn">
-                <div class="icon">🏦</div>
+    <!-- COLUMNA DERECHA (3 Botones, con el nuevo Reporte PDF) -->
+    <div class="menu-column">
+        <a href="balance.html" class="menu-btn" data-admin-only>
+            <div class="icon">🏛️</div>
+            <div class="menu-btn-text">
+                <h3>Balance Mensual de Caja</h3>
+                <p>Control contable de flujos mensuales en Efectivo vs Cuentas.</p>
+            </div>
+        </a>
+        <a href="tramites.html" class="menu-btn">
+            <div class="icon">📦</div>
+            <div class="menu-btn-text">
+                <h3>Control y Estado de Trámites</h3>
+                <p>Monitoreo de expedientes internos. Revisa qué está pendiente o listo.</p>
+            </div>
+        </a>
+            <!-- CONTENEDOR DEL BOTÓN DE REPORTE -->
+        <div class="menu-btn" data-admin-only style="display: flex; flex-direction: column; gap: 10px; height: auto; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 8px;">
+            <!-- Icono y textos del botón -->
+            <div style="display: flex; gap: 15px; width: 100%; align-items: center;">
+                <div class="icon">🖨️</div>
                 <div class="menu-btn-text">
-                    <h3>Balance Mensual de Caja</h3>
-                    <p>Control contable de flujos mensuales en Efectivo vs Cuentas.</p>
+                    <h3 style="margin: 0; color: #fff;">Reporte y Balance (PDF)</h3>
+                    <p style="margin: 5px 0 0 0; font-size: 12px; color: #aaa;">Ingresos, gastos, clientes, tramitadores y utilidad real.</p>
                 </div>
-            </a>
-            <a href="tramites.html" class="menu-btn">
-                <div class="icon">📦</div>
-                <div class="menu-btn-text">
-                    <h3>Control y Estado de Trámites</h3>
-                    <p>Monitoreo de expedientes internos. Revisa qué está pendiente o listo.</p>
-                </div>
-            </a>
+            </div>
+
+            <!-- Selector de Mes -->
+            <div style="width: 100%; padding-top: 5px;">
+                <input type="month" id="inputPeriodoReporte" style="background: #2a2a2a; color: #fff; border: 1px solid #ffcc00; padding: 8px; border-radius: 4px; width: 100%; box-sizing: border-box; cursor: pointer;">
+            </div>
+
+            <!-- Botón para accionar la descarga -->
+            <button onclick="generarReporteSede()" style="background: #ffcc00; color: #000; border: none; padding: 10px; border-radius: 4px; width: 100%; font-weight: bold; cursor: pointer; font-size: 13px;">
+                Generar PDF de esta Sede
+            </button>
         </div>
-    </main>
 
-    <script>
-        const originalFetchMenu = window.fetch;
-        window.fetch = function(url, options) {
-            const sedeId = localStorage.getItem('sede_activa_id') || 1;
-            if (typeof url === 'string' && url.includes('/api/reporte-contable-diario')) {
-                url = `http://localhost:3000/api/reporte-contable-diario?sedeId=${sedeId}`;
+    </div> <!-- Aquí cierra tu div class="menu-column" (Línea 328) -->
+</main>
+
+<!-- ZONA DE JAVASCRIPT (CORRECTAMENTE ENCERRADA) -->
+<script>
+// Deja seleccionado por defecto el mes actual al cargar la pantalla
+// (Asegúrate de tener el input con id="inputPeriodoReporte" en tu HTML arriba)
+const apiUrl = ruta => new URL(ruta.replace(/^\/+/, ''), window.location.href);
+if (document.getElementById('inputPeriodoReporte')) {
+    document.getElementById('inputPeriodoReporte').value = new Date().toISOString().slice(0, 7);
+}
+
+function generarReporteSede() {
+    const periodo = document.getElementById('inputPeriodoReporte').value;
+    if (!periodo) {
+        alert("Por favor, selecciona un mes para el balance.");
+        return;
+    }
+
+    const sedeId = localStorage.getItem('sede_activa_id');
+    if (!['1', '2'].includes(sedeId)) {
+        alert("No se encontró una sede válida. Selecciona la sede antes de generar el reporte.");
+        window.location.href = 'sedes.html';
+        return;
+    }
+
+    const parametros = new URLSearchParams({ sedeId, periodo });
+    window.open(apiUrl(`api/reporte-balance-mensual?${parametros.toString()}`), '_blank');
+}
+</script>
+
+<script>
+    const originalFetchMenu = window.fetch;
+    window.fetch = function(url, options) {
+        const sedeId = localStorage.getItem('sede_activa_id') || 1;
+
+        if (typeof url === 'string' && url.includes('/api/ventas-dia')) {
+            url = apiUrl(`api/ventas-dia?sedeId=${encodeURIComponent(sedeId)}`);
+        }
+
+        return originalFetchMenu(url, options);
+    };
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        const sedeId = localStorage.getItem('sede_activa_id');
+        const sedeNombre = localStorage.getItem('sede_activa_nombre');
+
+        if (!sedeId) {
+            window.location.href = 'sedes.html';
+            return;
+        }
+
+        const titulos = document.querySelectorAll('h2');
+        const parrafos = document.querySelectorAll('p');
+
+        titulos.forEach(titulo => {
+            if (titulo.innerText.includes("RD GESTIONES")) {
+                titulo.innerText = sedeNombre ? sedeNombre.toUpperCase() : "RD GESTIONES";
             }
-            return originalFetchMenu(url, options);
-        };
+        });
 
-        document.addEventListener("DOMContentLoaded", () => {
-            const sedeId = localStorage.getItem('sede_activa_id');
-            const sedeNombre = localStorage.getItem('sede_activa_nombre');
-            
-            if (!sedeId) {
-                window.location.href = 'sedes.html';
+        parrafos.forEach(p => {
+            const esDireccion = p.innerText.includes("CRA 52") || p.innerText.includes("CALLE 54") || p.innerText.includes("LOCAL 108") || p.innerText.includes("LOCAL 104") || p.innerText.includes("42-60");
+            const esTelefono = p.innerText.includes("3017222991") || p.innerText.includes("3009012017") || p.innerText.includes("2991");
+
+            if (sedeId === "1") {
+                if (esDireccion) p.innerText = "CRA 52 # 42 -60 LOCAL 108";
+                if (esTelefono) p.innerText = "3017222991";
+            } else if (sedeId === "2") {
+                if (esDireccion) p.innerText = "CALLE 54 # 45-6, LOCAL 104 MEDELLÍN";
+                if (esTelefono) p.innerText = "3009012017";
+            }
+        });
+        try {
+            const respuestaSesion = await fetch(apiUrl('api/sesion'));
+            if (!respuestaSesion.ok) throw new Error('La sesión expiró. Inicia sesión nuevamente.');
+            const sesion = await respuestaSesion.json();
+            const elUsuario = document.getElementById('nombreUsuarioActivo');
+            if (elUsuario) elUsuario.innerText = sesion.nombre;
+            if (sesion.rol !== 'ADMINISTRADOR') {
+                document.querySelectorAll('[data-admin-only]').forEach(elemento => elemento.remove());
+                document.querySelectorAll('.metric-card').forEach(elemento => elemento.remove());
                 return;
             }
 
-            const titulos = document.querySelectorAll('h2');
-            const parrafos = document.querySelectorAll('p');
-
-            titulos.forEach(titulo => {
-                if (titulo.innerText.includes("RD GESTIONES")) {
-                    titulo.innerText = sedeNombre ? sedeNombre.toUpperCase() : "RD GESTIONES";
-                }
-            });
-
-            parrafos.forEach(p => {
-                const esDireccion = p.innerText.includes("CRA 52") || p.innerText.includes("CALLE 54") || p.innerText.includes("LOCAL 108") || p.innerText.includes("LOCAL 104") || p.innerText.includes("42-60");
-                const esTelefono = p.innerText.includes("3017222991") || p.innerText.includes("3009012017") || p.innerText.includes("2991");
-
-                if (sedeId === "1") { 
-                    if (esDireccion) p.innerText = "CRA 52 # 42 -60 LOCAL 108";
-                    if (esTelefono) p.innerText = "3017222991";
-                } else if (sedeId === "2") { 
-                    if (esDireccion) p.innerText = "CALLE 54 # 45-6, LOCAL 104 MEDELLÍN";
-                    if (esTelefono) p.innerText = "3009012017";
-                }
-            });
-
-            fetch(`/api/reporte-contable-diario?sedeId=${sedeId}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data) {
-                        const ingresos = Number(data.ingresos || 0);
-                        const entidades = Number(data.entidades || 0);
-                        const tramitadores = Number(data.tramitadores || 0);
-                        const neto = ingresos - entidades - tramitadores;
-
-                        const elVentas = document.getElementById('menuVentas');
-                        const elUtilidad = document.getElementById('menuUtilidad');
-
-                        if (elVentas) elVentas.innerText = "$" + ingresos.toLocaleString('es-CO');
-                        if (elUtilidad) elUtilidad.innerText = "$" + neto.toLocaleString('es-CO');
-                    }
-                })
-                .catch(err => console.error("Error al cargar contadores del menú:", err));
-        });
-
-        const usuarioGuardado = localStorage.getItem('usuario_activo');
-        if (usuarioGuardado) {
-            document.getElementById('nombreUsuarioActivo').innerText = usuarioGuardado;
+            const respuestaIndicadores = await fetch(apiUrl(`api/indicadores-dia?_t=${Date.now()}`));
+            if (!respuestaIndicadores.ok) throw new Error('No se pudieron cargar los indicadores diarios.');
+            const data = await respuestaIndicadores.json();
+            if (!data.exito) throw new Error(data.error || 'No se pudieron cargar los indicadores diarios.');
+            const elVentas = document.getElementById('menuVentas');
+            const elUtilidad = document.getElementById('menuUtilidad');
+            if (elVentas) elVentas.innerText = "$" + Number(data.ventasBrutas).toLocaleString('es-CO');
+            if (elUtilidad) elUtilidad.innerText = "$" + Number(data.utilidadNeta).toLocaleString('es-CO');
+        } catch (error) {
+            console.error('No se pudo validar la sesión:', error);
+            window.location.href = 'login.html';
         }
-    </script>
+    });
+</script>
 </body>
 </html>

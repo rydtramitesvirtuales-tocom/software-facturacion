@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consola Contable - RD Gestiones</title>
+    <style>
+        body { font-family: system-ui, sans-serif; background-color: #0b0c10; color: #e2e8f0; margin: 0; padding: 0; box-sizing: border-box; display: flex; flex-direction: column; min-height: 100vh; justify-content: space-between; }
+        header { background: rgba(31, 35, 43, 0.95); border-bottom: 2px solid #f59e0b; padding: 8px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .logo-rd { width: 36px; height: 36px; background: linear-gradient(135deg, #fcd34d, #d97706); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #0b0c10; font-size: 15px; }
+        .wrapper { max-width: 1260px; width: 97%; margin: 15px auto; display: grid !important; grid-template-columns: 8fr 4fr !important; gap: 15px; align-items: start; flex-grow: 1; }
+        .card { background-color: #1f232b; border: 1px solid rgba(245, 158, 11, 0.15); border-radius: 12px; padding: 15px 20px; box-shadow: 0 8px 16px rgba(0,0,0,0.4); }
+        .title { font-size: 11px; font-weight: bold; color: #fde68a; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #334155; padding-bottom: 4px; margin: 5px 0 12px 0; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .f-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+        .f-group label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #94a3b8; }
+        input, select, textarea { background-color: #12151c; border: 1px solid #334155; border-radius: 6px; padding: 8px; color: #fff; font-size: 13px; outline: none; box-sizing: border-box; width: 100%; }
+        input:focus, select:focus { border-color: #f59e0b; }
+        .display-total { background-color: #12151c; border: 2px solid #334155; border-radius: 10px; padding: 15px; text-align: center; margin-bottom: 15px; }
+        .btn-submit { width: 100%; background: linear-gradient(to right, #10b981, #059669); color: #fff; border: none; padding: 14px; border-radius: 10px; font-weight: bold; font-size: 14px; text-transform: uppercase; cursor: pointer; box-shadow: 0 4px 10px rgba(16,185,129,0.2); }
+        .btn-submit:hover { background: linear-gradient(to right, #059669, #047857); transform: scale(0.99); }
+        footer { background-color: #12151c; border-top: 1px solid #1e293b; padding: 10px 30px; text-align: center; font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; }
+    </style>
+</head>
+<body>
+    <header>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <div class="logo-rd">RD</div>
+            <div><h1 style="margin:0; font-size:18px; color:#fde68a;">RD GESTIONES EMPRESARIALES</h1><p style="margin:0; font-size:9px; color:#f59e0b; text-transform:uppercase;">Seguridad y Calidad a su servicio</p></div>
+        </div>
+        <div style="display:flex; gap:15px; align-items:center;">
+            <div style="font-family:monospace; font-size:12px;"><span id="f" style="color:#94a3b8;">--/--/--</span> | <span id="h" style="color:#fcd34d; font-weight:bold;">--:--:--</span></div>
+            <div style="display:flex; gap:5px; align-items:center;"><label style="color:#fcd34d; font-size:10px; font-weight:bold;">CONSECUTIVO:</label><input type="text" id="fac" value="FAC-2026-690" style="width:110px; padding:4px; text-align:center; font-weight:bold; color:#fde68a;" readonly></div>
+        </div>
+    </header>
+    <div class="wrapper">
+        <div class="card">
+            <div class="title">Control Interno</div>
+            <div class="grid-2">
+                <div class="f-group"><label>Funcionario Operador</label><select id="usr"><option value="Administrador"> Daniel García</option><option value="Aprendiz"> Auxiliar SENA</option></select></div>
+            </div>
+         
+            <div class="title">Datos del Cliente</div>
+            <button type="button" onclick="cargarClienteGenerico()" style="background-color: #f9a30b; color: #0d0f14; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 15px;">
+                👤 Consumidor Final / Cliente Mostrador
+            </button>
+            <div class="grid-2">
+                <div class="f-group"><label>Nombre Completo / Razón Social</label><input type="text" id="nom" placeholder="Ej. Juan Pérez" required></div>
+                <div class="f-group"><label>CC / NIT</label><input type="text" id="doc" placeholder="Ej. 1045431631-1" required></div>
+            </div>
+            <div class="grid-2">
+                <div class="f-group"><label>Celular</label><input type="text" id="cel" placeholder="Ej. 3194886314"></div>
+                <div class="f-group"><label>Correo Electrónico</label><input type="email" id="eml" placeholder="ejemplo@gmail.com"></div>
+            </div>
+            <div class="title">Especificación del Servicio y Aliados</div>
+            <div class="grid-3">
+                <div class="f-group"><label>Tipo de Trámite</label><input type="text" id="trm" placeholder="Ej. RUT, Pasaporte" required></div>
+                <div class="f-group"><label>Tramitador Externo</label><select id="tra"><option value="Ninguno">Ninguno</option><option value="Zulay">Zulay</option><option value="Elena">Elena</option><option value="Yeison">Yeison</option><option value="Viejito">Viejito</option><option value="Edgar">Edgar</option><option value="Juanpablo">Juanpablo</option><option value="Otro">Otro</option></select></div>
+                <div class="f-group"><label>M. Pago Tramitador</label><select id="ptra"><option value="Ninguno">No aplica</option><option value="Caja Física">💵 Efectivo → Caja</option><option value="Bancolombia">🏦 Bancolombia</option><option value="Nequi">📱 Nequi</option><option value="Daviplata">💳 Daviplata</option></select></div>
+            </div>
+            <div class="grid-2">
+                <div class="f-group"><label>Pago Entidad ($)</label><input type="number" id="vent" value="0" oninput="calc()"></div>
+                <div class="f-group"><label>M. Pago Entidad</label><select id="pent"><option value="Ninguno">No aplica</option><option value="Caja Física">💵 Efectivo → Caja</option><option value="Bancolombia">🏦 Bancolombia</option><option value="Nequi">📱 Nequi</option><option value="Daviplata">💳 Daviplata</option><option value="PSE / Tarjeta">💳 PSE / Tarjeta → Banco</option></select></div>
+            </div>
+            <div class="title">Valores Contables y Comisiones (Distribución de Caja)</div>
+            <div class="grid-3">
+                <div class="f-group"><label>Valor Pagado Cliente ($)</label><input type="number" id="vtrm" value="0" oninput="calc()" required></div>
+                <div class="f-group"><label>Comisión Tramitador ($)</label><input type="number" id="vtra" value="0" oninput="calc()" required></div>
+                <div class="f-group"><label>Ganancia Interna Neto ($)</label><input type="number" id="vgan" value="0" style="color: #fcd34d; font-weight: bold; background-color: #1a1d24;" readonly></div>
+            </div>
+            <div class="grid-2">
+                <div class="f-group">
+                    <label for="dest">¿Cómo pagó el cliente y dónde ingresó el dinero?</label>
+                    <select id="dest" required onchange="actualizarDestinoIngreso()">
+                        <option value="" selected disabled>Selecciona efectivo o transferencia</option>
+                        <option value="Caja Física">💵 Efectivo → Caja física</option>
+                        <option value="Bancolombia">🏦 Transferencia → Bancolombia</option>
+                        <option value="Nequi">📱 Transferencia → Nequi</option>
+                        <option value="Daviplata">💳 Transferencia → Daviplata</option>
+                    </select>
+                </div>
+            </div>
+            <div class="title">Observaciones</div>
+            <div class="f-group"><textarea id="not" rows="1" placeholder="Credenciales de acceso, usuarios, claves..."></textarea></div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:15px; position:sticky; top:15px;">
+            <div class="display-total">
+                <div style="font-size:11px; color:#94a3b8; font-weight:800; letter-spacing:1px; margin-bottom:3px;" id="lbl-destino-ingreso">TOTAL RECIBIDO</div>
+                <div style="font-size:32px; font-weight:800; color:#10b981;" id="lbl-tot">$0</div>
+            </div>
+            <button onclick="enviarData()" class="btn-submit">💾 REGISTRAR VENTA</button>
+            
+            <button type="button" onclick="enviarSoporteWhatsAppDirecto()" style="width: 100%; margin-top: 15px; padding: 15px; background-color: #25D366; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" style="fill: white;">
+                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397 0 11.948 0c3.179.001 6.167 1.24 8.416 3.492 2.249 2.252 3.485 5.244 3.484 8.423-.003 6.598-5.34 11.946-11.892 11.946-.207 0-4.13-.031-2.036-.575L0 24zm6.104-14.994c-.166-.367-.341-.374-.499-.381-.131-.005-.28-.005-.43-.005-.149 0-.393.056-.599.28-.206.224-.785.766-.785 1.867 0 1.1.8 2.164.912 2.314.111.15 1.574 2.404 3.814 3.374.533.23 1.011.368 1.358.478.535.17 1.022.146 1.407.089.43-.064 1.319-.539 1.506-1.059.187-.52.187-.966.131-1.059-.056-.094-.206-.149-.43-.262-.225-.113-1.319-.651-1.525-.726-.206-.075-.355-.112-.505.112-.15.224-.58.726-.71.877-.131.151-.262.169-.486.056-.224-.112-.949-.349-1.807-1.115-.668-.596-1.119-1.332-1.25-1.556-.131-.224-.014-.346.099-.458.101-.1.224-.262.336-.393.112-.131.149-.224.224-.374.075-.15.037-.281-.019-.393-.056-.113-.5-.1.49-.499-1.218z"/>
+                </svg>
+                ENVIAR SOPORTE WHATSAPP
+            </button>
+            <button type="button" id="botonFacturaPdf" onclick="generarYCompartirFacturaPdf(false)" disabled style="width: 100%; padding: 15px; background-color: #d4af37; color: #0b0c10; border: none; border-radius: 6px; font-weight: bold; cursor: not-allowed; font-size: 15px; opacity: 0.55;">
+                📄 DESCARGAR FACTURA PDF
+            </button>
+            <button type="button" id="botonCompartirFacturaPdf" onclick="generarYCompartirFacturaPdf(true)" disabled style="width: 100%; padding: 15px; background-color: #168a4a; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: not-allowed; font-size: 15px; opacity: 0.55;">
+                📤 COMPARTIR FACTURA PDF
+            </button>
+            <p id="estadoFacturaPdf" role="status" style="margin: 0; color: #94a3b8; font-size: 12px; text-align: center;">
+                Registra la venta para habilitar el PDF.
+            </p>
+            <button type="button" id="botonNuevaVenta" onclick="location.reload()" hidden style="width: 100%; padding: 12px; background: #334155; color: #fff; border: 1px solid #475569; border-radius: 6px; font-weight: bold; cursor: pointer;">
+                Registrar otra venta
+            </button>
+        </div>
+    </div>
+
+    <!-- BARRA INFERIOR CON CERRAR SESIÓN AJUSTADO -->
+    <footer style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background-color: #0c1017; border-top: 1px solid #1f2937; margin-top: 30px;">
+        <span style="color: #8b949e; font-size: 12px;">© 2026 RD GESTIONES EMPRESARIALES.</span>
+        
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <span style="color: #8b949e; font-size: 12px; letter-spacing: 1px;">SEGURIDAD Y CALIDAD A SU SERVICIO</span>
+            
+            <!-- Botón corregido para regresar al menú de XAMPP de forma segura -->
+            <a href="menu.html" style="background-color: #1f2937; color: #c9d1d9; border: 1px solid #30363d; text-decoration: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 12px; display: flex; align-items: center; gap: 6px; transition: all 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+                🏠 MENÚ PRINCIPAL
+            </a>
+            
+            <!-- Botón de salida -->
+           <a href="logout" onclick="localStorage.removeItem('sede_activa_id');" style="background-color: #ff3b30; color: white; text-decoration: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 12px; display: flex; align-items: center; gap: 6px; transition: background-color 0.3s; box-shadow: 0 2px 8px rgba(255,59,48,0.2);">
+    🔒 CERRAR SESIÓN
+</a>
+        </div>
+    </footer>
+
+    <script>
+        let facturaRegistradaId = null;
+
+        function cargarClienteGenerico() {
+            const todosLosInputs = document.querySelectorAll('input');
+            todosLosInputs.forEach(input => {
+                const guia = (input.placeholder || '').toLowerCase();
+                const nombreTecnico = (input.id || input.name || '').toLowerCase();
+                
+                if (guia.includes('pérez') || guia.includes('juan') || nombreTecnico.includes('nombre')) {
+                    input.value = "CONSUMIDOR FINAL";
+                }
+                if (guia.includes('104543') || nombreTecnico.includes('cc') || nombreTecnico.includes('nit') || nombreTecnico.includes('documento')) {
+                    input.value = "222222222222";
+                }
+                if (guia.includes('319488') || nombreTecnico.includes('celular') || nombreTecnico.includes('tel')) {
+                    input.value = "3000000000";
+                }
+                if (guia.includes('ejemplo') || guia.includes('gmail') || nombreTecnico.includes('email') || nombreTecnico.includes('correo')) {
+                    input.value = "consumidorfinal@rdgestiones.com";
+                }
+            });
+        }
+
+        function reloj() {
+            const a = new Date();
+            document.getElementById('f').innerText = a.toLocaleDateString('es-CO');
+            document.getElementById('h').innerText = a.toLocaleTimeString('es-CO');
+        }
+        setInterval(reloj, 1000);
+        reloj();
+
+        function calc() {
+            const campoCliente = document.getElementById('vtrm');
+            const campoTramitador = document.getElementById('vtra');
+            const campoEntidad = document.getElementById('vent');
+            const campoGanancia = document.getElementById('vgan');
+            const campoTotal = document.getElementById('lbl-tot');
+
+            const valorCliente = parseFloat(campoCliente.value) || 0;
+            const pTramitador = parseFloat(campoTramitador.value) || 0;
+            const pEntidad = parseFloat(campoEntidad.value) || 0;
+
+            const gananciaNeto = valorCliente - pEntidad - pTramitador;
+            campoGanancia.value = gananciaNeto > 0 ? Math.round(gananciaNeto) : 0;
+            campoTotal.innerText = `$${Math.round(valorCliente).toLocaleString('es-CO')}`;
+        }
+
+        function actualizarDestinoIngreso() {
+            const destino = document.getElementById('dest').value;
+            const etiqueta = document.getElementById('lbl-destino-ingreso');
+            etiqueta.innerText = destino === 'Caja Física'
+                ? 'TOTAL RECIBIDO EN CAJA'
+                : destino
+                    ? `TOTAL RECIBIDO EN ${destino.toUpperCase()}`
+                    : 'TOTAL RECIBIDO';
+        }
+
+        function enviarSoporteWhatsAppDirecto() {
+            try {
+                if (!facturaRegistradaId) {
+                    alert("Registra la venta antes de enviar la constancia de pago por WhatsApp.");
+                    return;
+                }
+
+                const inputNombre = document.querySelector('input[placeholder="Ej. Juan Pérez"]');
+                const inputCelular = document.querySelector('input[placeholder="Ej. 3194886314"]');
+                const inputTramite = document.querySelector('input[placeholder="Ej. RUT, Pasaporte"]');
+                
+                const nombreCliente = inputNombre ? inputNombre.value.trim().toUpperCase() : "CLIENTE";
+                let celularCliente = inputCelular ? inputCelular.value.trim() : "";
+                const tramiteCliente = inputTramite ? inputTramite.value.trim().toUpperCase() : "GESTIÓN Y TRÁMITES";
+                
+                let valorPagado = "0";
+                const todosLosInputs = document.querySelectorAll('input');
+                todosLosInputs.forEach(input => {
+                    if (input.placeholder && input.placeholder.toUpperCase().includes('VALOR PAGADO CLIENTE')) {
+                        const numeroLimpio = input.value.replace(/\D/g, '');
+                        if (numeroLimpio) {
+                            valorPagado = parseInt(numeroLimpio, 10).toLocaleString('es-CO');
+                        }
+                    }
+                });
+                if (valorPagado === "0" || valorPagado === "") {
+                    valorPagado = document.getElementById('vtrm')?.value ? Number(document.getElementById('vtrm').value).toLocaleString('es-CO') : "0";
+                }
+
+                const fechaActual = new Date().toLocaleDateString('es-CO');
+                if (!celularCliente) {
+                    alert("Por favor, ingresa el número de celular del cliente antes de enviar el soporte.");
+                    return;
+                }
+                celularCliente = celularCliente.replace(/\D/g, '');
+                if (!celularCliente.startsWith('57') && celularCliente.length === 10) {
+                    celularCliente = '57' + celularCliente;
+                }
+
+                let mensaje = "🏢 *RD GESTIONES EMPRESARIALES*\n";
+                mensaje += "✨ *Seguridad, calidad y confianza a su servicio.*\n\n";
+                mensaje += "Estimado(a) *" + nombreCliente + "*, reciba un cordial saludo.\n\n";
+                mensaje += "🧾 *CONSTANCIA DE PAGO*\n\n";
+                mensaje += "Nos permitimos confirmar la recepción de su pago por los servicios contratados con RD Gestiones Empresariales.\n\n";
+                mensaje += "📅 *Fecha de pago:* " + fechaActual + "\n";
+                mensaje += "💰 *Valor recibido:* $" + valorPagado + " COP\n";
+                mensaje += "💳 *Concepto:* Pago por servicios de " + tramiteCliente.toLowerCase() + ".\n";
+                mensaje += "📌 *Estado del pago:* PAGADO ✅\n\n";
+                mensaje += "📄 *Si requiere el comprobante en PDF, puede solicitarlo por este chat.*\n\n";
+                mensaje += "🤝 *Agradecemos su confianza en nosotros. Seguimos comprometidos con brindarle un servicio responsable, ágil y de calidad durante cada etapa de su proceso.*\n\n";
+                mensaje += "💚 *¡Gracias por elegir RD Gestiones Empresariales!*\n\n";
+                mensaje += "━━━━━━━━━━━━━━━━━━━━\n";
+                mensaje += "🏢 *RD GESTIONES EMPRESARIALES*\n";
+                mensaje += "🔐 *Seguridad • Calidad • Confianza*";
+
+                const parametros = new URLSearchParams();
+                parametros.append('phone', celularCliente);
+                parametros.append('text', mensaje);
+                const urlFinal = "https://api.whatsapp.com/send?" + parametros.toString();
+                
+                const opcionesVentana = "width=800,height=700,status=no,menubar=no,toolbar=no,scrollbars=yes";
+                window.open(urlFinal, 'ventanaSoporteRD', opcionesVentana);
+            } catch (error) {
+                console.error("Error en WhatsApp:", error);
+                alert("Ocurrió un inconveniente al procesar los datos para WhatsApp.");
+            }
+        }
+
+        async function generarYCompartirFacturaPdf(compartir = false) {
+            if (!facturaRegistradaId) {
+                alert('Primero registra la venta para generar su comprobante PDF.');
+                return;
+            }
+
+            const boton = document.getElementById('botonFacturaPdf');
+            const botonCompartir = document.getElementById('botonCompartirFacturaPdf');
+            const estado = document.getElementById('estadoFacturaPdf');
+            boton.disabled = true;
+            botonCompartir.disabled = true;
+            boton.style.cursor = 'wait';
+            botonCompartir.style.cursor = 'wait';
+            estado.textContent = 'Generando el PDF...';
+
+            try {
+                const respuesta = await fetch(`/api/facturas/${facturaRegistradaId}/pdf`);
+                const tipoContenido = respuesta.headers.get('content-type') || '';
+                if (!respuesta.ok || !tipoContenido.includes('application/pdf')) {
+                    let mensaje = 'No se pudo generar el PDF de la factura.';
+                    if (tipoContenido.includes('application/json')) {
+                        const datos = await respuesta.json();
+                        mensaje = datos.mensaje || mensaje;
+                    }
+                    throw new Error(mensaje);
+                }
+
+                const archivo = await respuesta.blob();
+                const nombre = `factura-${document.getElementById('fac').value.trim() || facturaRegistradaId}.pdf`;
+                const archivoPdf = typeof File === 'function'
+                    ? new File([archivo], nombre, { type: 'application/pdf' })
+                    : null;
+                if (compartir && archivoPdf && navigator.share && navigator.canShare?.({ files: [archivoPdf] })) {
+                    try {
+                        await navigator.share({
+                            title: 'Comprobante de pago',
+                            text: 'Comprobante de pago de RD Gestiones Empresariales.',
+                            files: [archivoPdf]
+                        });
+                        estado.textContent = 'PDF compartido. Puedes elegir WhatsApp en las opciones del dispositivo.';
+                        return;
+                    } catch (error) {
+                        if (error.name === 'AbortError') throw error;
+                        console.warn('El dispositivo no pudo abrir el menú para compartir el PDF; se descargará el archivo.', error);
+                    }
+                }
+
+                const url = URL.createObjectURL(archivo);
+                const enlace = document.createElement('a');
+                enlace.href = url;
+                enlace.download = nombre;
+                document.body.appendChild(enlace);
+                enlace.click();
+                enlace.remove();
+                window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+                estado.textContent = compartir
+                    ? 'PDF descargado. Adjunta el archivo en el chat de WhatsApp.'
+                    : 'PDF descargado correctamente.';
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    estado.textContent = 'Se canceló el menú para compartir. Puedes volver a intentarlo.';
+                    return;
+                }
+                console.error('Error al generar o compartir la factura PDF:', error);
+                estado.textContent = error.message || 'No se pudo generar el PDF.';
+                alert(estado.textContent);
+            } finally {
+                boton.disabled = false;
+                botonCompartir.disabled = false;
+                boton.style.cursor = 'pointer';
+                botonCompartir.style.cursor = 'pointer';
+            }
+        }
+
+        function enviarData() {
+            try {
+                const inputNombre = document.querySelector('input[placeholder="Ej. Juan Pérez"]');
+                const inputDocumento = document.querySelector('input[placeholder="Ej. 1045431631-1"]');
+                const inputCelular = document.querySelector('input[placeholder="Ej. 3194886314"]');
+                const inputEmail = document.querySelector('input[placeholder="ejemplo@gmail.com"]');
+                const inputTramite = document.querySelector('input[placeholder="Ej. RUT, Pasaporte"]');
+                
+                const selectTramitador = document.getElementById('tra') || { value: "Ninguno" };
+                const selectPagoTramitador = document.getElementById('ptra') || { value: "Caja Física" };
+                const selectDestino = document.getElementById('dest') || { value: "Caja Física" };
+                const selectMetodoEntidad = document.getElementById('pent') || { value: "Ninguno" };
+
+                const inputPrecioTramite = document.getElementById('vtrm');
+                const inputPrecioTramitador = document.getElementById('vtra');
+                const inputPrecioEntidad = document.getElementById('vent');
+
+                const p_tramite = inputPrecioTramite ? parseFloat(inputPrecioTramite.value) || 0 : 0;
+                const p_tramitador = inputPrecioTramitador ? parseFloat(inputPrecioTramitador.value) || 0 : 0;
+                const p_entidad = inputPrecioEntidad ? parseFloat(inputPrecioEntidad.value) || 0 : 0;
+                const notasTextarea = document.getElementById('not') ? document.getElementById('not').value : "";
+
+                if (!['Caja Física', 'Bancolombia', 'Nequi', 'Daviplata'].includes(selectDestino.value)) {
+                    alert("Selecciona cómo pagó el cliente y dónde ingresó el dinero.");
+                    return;
+                }
+
+                if (!inputNombre || inputNombre.value.trim() === "") {
+                    alert("Por favor, ingresa el nombre del cliente antes de registrar la venta.");
+                    return;
+                }
+
+                const paqueteVenta = {
+                    consecutivo: (() => {
+                        const campoFac = document.getElementById('fac');
+                        return campoFac ? campoFac.value.trim() : "FAC-2026-690";
+                    })(),
+                    usuario_registro: document.getElementById('usr')?.value || "Daniel García",
+                    nombre: inputNombre.value.trim(),
+                    documento: inputDocumento ? inputDocumento.value.trim() : "",
+                    celular: inputCelular ? inputCelular.value.trim() : "",
+                    email: inputEmail ? inputEmail.value.trim() : "",
+                    tramite: inputTramite ? inputTramite.value.trim() : "Gestión General",
+                    tramitador: selectTramitador.value,
+                    pago_tramitador: selectPagoTramitador.value,
+                    destino: selectDestino.value,
+                    precio_tramite: p_tramite,         
+                    precio_tramitador: p_tramitador,   
+                    pago_entidad: p_entidad,         
+                    m_pago_entidad: selectMetodoEntidad.value,
+                    notas: notasTextarea
+                };
+
+                fetch('/api/facturar-completa', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(paqueteVenta)
+                })
+                .then(async response => {
+                    const tipoContenido = response.headers.get('content-type') || '';
+                    if (!tipoContenido.includes('application/json')) {
+                        throw new Error('El servidor no devolvió una respuesta válida. Verifica tu sesión e inténtalo de nuevo.');
+                    }
+                    const data = await response.json();
+                    if (!response.ok || !data.exito) {
+                        throw new Error(data.mensaje || data.error || 'No se pudo registrar la venta.');
+                    } else {
+                        facturaRegistradaId = Number(data.id);
+                        if (!Number.isSafeInteger(facturaRegistradaId) || facturaRegistradaId <= 0) {
+                            throw new Error('La venta se registró, pero el servidor no devolvió su identificador para generar el PDF.');
+                        }
+                        const botonPdf = document.getElementById('botonFacturaPdf');
+                        const botonCompartirPdf = document.getElementById('botonCompartirFacturaPdf');
+                        botonPdf.disabled = false;
+                        botonCompartirPdf.disabled = false;
+                        botonPdf.style.cursor = 'pointer';
+                        botonCompartirPdf.style.cursor = 'pointer';
+                        botonPdf.style.opacity = '1';
+                        botonCompartirPdf.style.opacity = '1';
+                        document.getElementById('estadoFacturaPdf').textContent =
+                            'Venta registrada. Ya puedes generar el PDF y compartirlo por chat.';
+                        const botonRegistrar = document.querySelector('.btn-submit');
+                        botonRegistrar.disabled = true;
+                        botonRegistrar.style.cursor = 'not-allowed';
+                        botonRegistrar.style.opacity = '0.55';
+                        document.getElementById('botonNuevaVenta').hidden = false;
+                        alert("🚀 ¡Venta registrada! Ya puedes generar y compartir su PDF.");
+                    }
+                })
+                .catch(err => {
+                    console.error("Error en petición:", err);
+                    alert(err.message || "Ocurrió un inconveniente de red al conectar con el servidor.");
+                });
+            } catch (falla) {
+                console.error("Error ejecución enviarData:", falla);
+            }
+        }
+
+   function actualizarConsecutivoDinamicoServidor() {
+    fetch('/api/obtener-siguiente-consecutivo', {
+        method: 'GET',
+        credentials: 'include' // <-- Obligatorio para enviar la sesión activa
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.exito && data.siguiente) {
+            const inputFac = document.getElementById('fac');
+            if (inputFac) {
+                inputFac.value = data.siguiente;
+            }
+        }
+    })
+    .catch(err => console.error("Error crítico al sincronizar el consecutivo visual:", err));
+}
+
+document.addEventListener('DOMContentLoaded', actualizarConsecutivoDinamicoServidor);
+
+        // Interceptor maestro de fetch optimizado con soporte de credenciales
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options = {}) {
+            const sedeId = localStorage.getItem('sede_activa_id') || '1';
+            
+            // Asegurar que todas las peticiones lleven credenciales de sesión por defecto
+            options.credentials = options.credentials || 'include';
+
+            // Si la ruta empieza con /api/, la apuntamos al puerto 3000 de Node.js
+            if (typeof url === 'string' && url.startsWith('/api/')) {
+                // Evitar duplicar ? si ya viene con parámetros
+                const separador = url.includes('?') ? '&' : '?';
+                if (!url.includes('sedeId=')) {
+                    url = new URL(`${url.slice(1)}${separador}sedeId=${encodeURIComponent(sedeId)}`, window.location.href);
+                } else {
+                    url = new URL(url.slice(1), window.location.href);
+                }
+            }
+
+            if (options && options.method === 'POST' && options.body) {
+                try {
+                    let datos = JSON.parse(options.body);
+                    datos.sedeId = sedeId;
+                    options.body = JSON.stringify(datos);
+                } catch (e) {
+                    if (typeof options.body === 'string' && !options.body.includes('sedeId=')) {
+                        options.body += `&sedeId=${sedeId}`;
+                    }
+                }
+            }
+            return originalFetch(url, options);
+        };
+    </script>
+</body>
+</html>

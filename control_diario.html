@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control diario por cuenta</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --background: #0b0f19;
+            --surface: #141a26;
+            --border: rgba(212, 175, 55, 0.3);
+            --gold: #f3d675;
+            --muted: #a8b2c2;
+            --green: #63d297;
+            --red: #ff8585;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 22px;
+            background: var(--background);
+            color: #f5f7fb;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        main { width: min(1180px, 100%); margin: 0 auto; }
+        header, section {
+            margin-bottom: 18px;
+            padding: 20px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+        header { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+        h1, h2, p { margin-top: 0; }
+        h1 { margin-bottom: 6px; color: var(--gold); font-size: 1.45rem; }
+        h2 { font-size: 1.1rem; }
+        p, .muted { color: var(--muted); line-height: 1.5; }
+        label { display: grid; gap: 6px; color: var(--muted); font-size: 0.9rem; }
+        input, select, textarea, button, .button-link {
+            min-height: 40px;
+            padding: 9px 11px;
+            border: 1px solid #465063;
+            border-radius: 7px;
+            background: #0b0f19;
+            color: #fff;
+            font: inherit;
+        }
+        input[type="number"] { width: 100%; }
+        textarea { width: 100%; resize: vertical; }
+        button, .button-link {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            border-color: #b8962f;
+            background: #d4af37;
+            color: #111;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        button:disabled { opacity: 0.55; cursor: not-allowed; }
+        .header-actions { display: flex; gap: 9px; flex-wrap: wrap; }
+        .account-grid, .opening-grid, .transfer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 12px;
+        }
+        .balance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+            gap: 12px;
+            margin: 14px 0;
+        }
+        .summary-card {
+            display: grid;
+            gap: 8px;
+            padding: 14px;
+            border: 1px solid #465063;
+            border-radius: 8px;
+            background: #0b0f19;
+        }
+        .summary-card strong { color: var(--muted); font-size: 0.88rem; }
+        .summary-card span { color: var(--gold); font-size: 1.25rem; font-weight: 700; }
+        .summary-card.digital { border-color: rgba(99, 210, 151, 0.45); }
+        .summary-card.cash { border-color: rgba(243, 214, 117, 0.5); }
+        .header-actions .button-link { background: #171d29; color: var(--gold); }
+        .header-actions .button-link:hover { background: #252d3b; }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 1180px; }
+        th, td { padding: 10px 8px; border-bottom: 1px solid #30394a; text-align: left; }
+        th { color: var(--gold); font-size: 0.82rem; }
+        td { font-variant-numeric: tabular-nums; }
+        .count-input { min-width: 125px; }
+        .difference-positive { color: var(--green); font-weight: 700; }
+        .difference-negative { color: var(--red); font-weight: 700; }
+        .difference-even { color: var(--green); font-weight: 700; }
+        .cash-arqueo { margin-top: 20px; }
+        .cash-arqueo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+        .cash-arqueo-output {
+            display: grid;
+            align-content: center;
+            gap: 6px;
+            min-height: 65px;
+            padding: 9px 11px;
+            border: 1px solid #465063;
+            border-radius: 7px;
+            background: #0b0f19;
+        }
+        .cash-arqueo-output strong { color: var(--gold); }
+        .actions { display: flex; gap: 10px; align-items: center; margin-top: 14px; flex-wrap: wrap; }
+        .status { margin: 12px 0 0; min-height: 1.4em; }
+        .warning { color: #ffd479; }
+        [hidden] { display: none !important; }
+        @media (max-width: 700px) {
+            body { padding: 12px; }
+            header { align-items: flex-start; flex-direction: column; }
+            header, section { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+<main>
+    <header>
+        <div>
+            <h1>Control diario por cuenta</h1>
+            <p style="margin-bottom: 0;">Cada cuenta se concilia por separado. Un traslado mueve dinero; no es una venta ni un gasto.</p>
+        </div>
+        <nav class="header-actions">
+            <a class="button-link" href="consola2.html">Registrar trámite/venta</a>
+            <a class="button-link" href="ingresos-gastos.html">Registrar gasto local</a>
+            <a class="button-link" href="#areaGastoPersonal" id="accesoGastoPersonal">Registrar gasto personal</a>
+            <a class="button-link" href="#cierreArqueo" id="accesoCierreArqueo">Cierre y arqueo</a>
+            <a class="button-link" href="menu.html">Menú</a>
+        </nav>
+    </header>
+
+    <section id="estadoCargaControl" role="status">
+        <p id="mensajeCargaControl" style="margin-bottom: 0;">Consultando saldos y movimientos del día...</p>
+    </section>
+
+    <section id="configuracion" hidden>
+        <h2>Inicio del nuevo control</h2>
+        <p>Esto crea un corte nuevo sin cambiar ventas, gastos ni cierres anteriores. Ingresa lo que realmente habrá en cada cuenta al comenzar el control. Puedes iniciar hoy o mañana.</p>
+        <form id="formAperturas">
+            <div class="opening-grid">
+                <label>Fecha de inicio
+                    <input type="date" id="fechaInicio" required>
+                </label>
+                <label>Caja diaria al inicio ($)
+                    <input type="number" name="caja" min="0" step="0.01" required>
+                </label>
+                <label>Fondo físico mensual ($)
+                    <input type="number" name="fondo" min="0" step="0.01" required>
+                </label>
+                <label>Bancolombia ($)
+                    <input type="number" name="bancolombia" min="0" step="0.01" required>
+                </label>
+                <label>Nequi ($)
+                    <input type="number" name="nequi" min="0" step="0.01" required>
+                </label>
+                <label>Otros digitales (Daviplata/PSE) ($)
+                    <input type="number" name="otros_digitales" min="0" step="0.01" required>
+                </label>
+            </div>
+            <div class="actions">
+                <button type="submit">Guardar saldos de inicio</button>
+                <span class="muted">Después de guardar, las aperturas quedan protegidas para conservar el historial.</span>
+            </div>
+        </form>
+        <p id="estadoConfiguracion" class="status" role="status"></p>
+    </section>
+
+    <section id="mensajeEspera" hidden>
+        <h2>Control configurado, pendiente de inicio</h2>
+        <p id="textoEspera" class="warning"></p>
+        <p id="resumenApertura" class="muted"></p>
+        <div class="table-wrap">
+            <table style="min-width: 600px;">
+                <thead><tr><th>Cuenta</th><th>Saldo inicial guardado</th></tr></thead>
+                <tbody id="filasAperturaGuardadas"></tbody>
+                <tfoot>
+                    <tr><th>Efectivo físico inicial (Caja + Fondo)</th><th id="totalEfectivoInicial">$ 0</th></tr>
+                    <tr><th>Saldo digital inicial</th><th id="totalDigitalInicial">$ 0</th></tr>
+                </tfoot>
+            </table>
+        </div>
+        <p>Estos importes son los saldos de apertura guardados. No se han modificado. El control y el cálculo de movimientos del día se habilitan desde la fecha de inicio.</p>
+        <div class="actions">
+            <button type="button" id="adelantarInicioHoy">Iniciar hoy conservando estos saldos</button>
+            <span id="estadoAdelantarInicio" class="muted" role="status"></span>
+        </div>
+    </section>
+
+    <section id="seccionControl" hidden>
+        <div class="account-grid">
+            <label>Fecha a revisar
+                <input type="date" id="fechaControl" required>
+            </label>
+            <div>
+                <h2>Cómo leer el cuadro</h2>
+                <p style="margin-bottom: 0;">Apertura + entradas − salidas = esperado. Compáralo con el conteo real de cada cuenta. Los pagos a tramitadores y entidades se toman de lo registrado en la factura; el sistema no marca pagos pendientes por separado, así que verifica que esos valores sí hayan salido de la cuenta indicada.</p>
+            </div>
+        </div>
+        <p id="estadoInicio" class="muted"></p>
+        <div id="alertaSinCuenta" class="warning" role="alert" hidden></div>
+        <h2>Saldo que debe quedar por cuenta</h2>
+        <p>Estos saldos esperados incluyen la apertura y los movimientos registrados del día. Compara cada uno con el conteo real de la tabla para identificar diferencias.</p>
+        <div class="balance-grid" aria-live="polite">
+            <div class="summary-card cash">
+                <strong>Caja del día sin apertura/base</strong>
+                <span id="netoDiaCaja">$ 0</span>
+            </div>
+            <div class="summary-card digital">
+                <strong>Bancolombia esperado</strong>
+                <span id="saldoBancolombiaEsperado">$ 0</span>
+            </div>
+            <div class="summary-card digital">
+                <strong>Nequi esperado</strong>
+                <span id="saldoNequiEsperado">$ 0</span>
+            </div>
+            <div class="summary-card digital">
+                <strong>Neto del día en Bancolombia</strong>
+                <span id="netoDiaBancolombia">$ 0</span>
+            </div>
+            <div class="summary-card digital">
+                <strong>Neto del día en Nequi</strong>
+                <span id="netoDiaNequi">$ 0</span>
+            </div>
+            <div class="summary-card digital">
+                <strong>Otros digitales esperados</strong>
+                <span id="saldoOtrosDigitalesEsperado">$ 0</span>
+            </div>
+            <div class="summary-card cash">
+                <strong>Total efectivo esperado (Caja + Fondo)</strong>
+                <span id="totalEfectivoFisico">$ 0</span>
+            </div>
+            <div class="summary-card digital">
+                <strong>Total digital esperado (Bancolombia + Nequi + otros)</strong>
+                <span id="totalDigital">$ 0</span>
+            </div>
+            <div class="summary-card cash">
+                <strong>Fondo físico mensual esperado</strong>
+                <span id="saldoFondoEsperado">$ 0</span>
+            </div>
+        </div>
+        <p class="muted">Los netos diarios son el saldo esperado menos la apertura de cada cuenta; no incluyen el dinero que ya había al iniciar el día. Incluyen los movimientos registrados, como gastos personales y traslados, por lo que no equivalen a la utilidad del negocio.</p>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Cuenta</th><th>Apertura</th><th>Ventas recibidas</th>
+                        <th>Pagos registrados a tramitadores</th><th>Pagos registrados a entidades</th><th>Gastos local</th><th>Gastos personales</th>
+                        <th>Traslados entran</th><th>Traslados salen</th><th>Esperado</th>
+                        <th>Conteo manual real</th><th>Diferencia</th>
+                    </tr>
+                </thead>
+                <tbody id="filasCuentas"></tbody>
+            </table>
+        </div>
+        <div class="cash-arqueo" id="cierreArqueo">
+            <h2>Arqueo de cierre de caja</h2>
+            <p>Ingresa el efectivo contado manualmente. El cuadre se calcula frente al esperado de Caja diaria. La base queda como apertura para mañana; el producido retirado se calcula como contado menos base.</p>
+            <div class="cash-arqueo-grid">
+                <div class="cash-arqueo-output">
+                    <strong>Dinero esperado en Caja diaria</strong>
+                    <span id="dineroEsperadoCaja">$ 0</span>
+                </div>
+                <label>Dinero físico contado manualmente ($)
+                    <input type="number" id="dineroContadoInput" min="0" step="0.01" required>
+                </label>
+                <div class="cash-arqueo-output">
+                    <strong>Cuadre de caja</strong>
+                    <span id="diferenciaArqueoCaja">Ingresa el conteo físico</span>
+                </div>
+                <label>Base que queda en caja para el día siguiente ($)
+                    <input type="number" id="baseCajaSiguiente" min="0" step="0.01" required>
+                </label>
+                <div class="cash-arqueo-output">
+                    <strong>Producido retirado (fuera de cuentas controladas)</strong>
+                    <span id="producidoRetirado">$ 0</span>
+                </div>
+            </div>
+        </div>
+        <form id="formCierre">
+            <label style="margin-top: 14px;">Nota del cierre o explicación
+                <textarea id="motivoCierre" rows="2" minlength="5" maxlength="500" required></textarea>
+            </label>
+            <div class="actions">
+                <button type="submit" id="guardarCierre">Guardar cierre de todas las cuentas</button>
+                <span id="estadoCierre" class="muted" role="status"></span>
+            </div>
+        </form>
+        <div class="actions">
+            <button type="button" id="descargarResumenCierre" disabled>Descargar resumen del arqueo en PDF</button>
+            <span id="estadoDescargaResumen" class="muted" role="status">Guarda el cierre de todas las cuentas para habilitar el resumen.</span>
+        </div>
+        <div class="actions">
+            <button type="button" id="mostrarFormularioGastoPersonal">Registrar gasto personal</button>
+            <span class="muted">Los gastos personales afectan únicamente el saldo de la cuenta seleccionada; no se mezclan con gastos del local.</span>
+        </div>
+        <div id="areaGastoPersonal" hidden>
+            <h2 style="margin-top: 22px;">Registrar gasto personal</h2>
+            <form id="formGastoPersonal">
+                <div class="transfer-grid">
+                    <label>Fecha
+                        <input type="date" id="fechaGastoPersonal" required>
+                    </label>
+                    <label>Cuenta de salida
+                        <select id="cuentaGastoPersonal" required></select>
+                    </label>
+                    <label>Monto ($)
+                        <input type="number" id="montoGastoPersonal" min="0.01" step="0.01" required>
+                    </label>
+                    <label>Descripción
+                        <input type="text" id="descripcionGastoPersonal" maxlength="300" required>
+                    </label>
+                </div>
+                <div class="actions">
+                    <button type="submit">Guardar gasto personal</button>
+                    <span id="estadoGastoPersonal" class="muted" role="status"></span>
+                </div>
+            </form>
+        </div>
+        <h2 style="margin-top: 22px;">Gastos personales registrados para este día</h2>
+        <div class="table-wrap">
+            <table style="min-width: 700px;">
+                <thead><tr><th>Cuenta de salida</th><th>Monto</th><th>Descripción</th><th>Registrado por</th></tr></thead>
+                <tbody id="filasGastosPersonales"></tbody>
+            </table>
+        </div>
+        <h2 style="margin-top: 22px;">Traslados registrados para este día</h2>
+        <div class="table-wrap">
+            <table style="min-width: 600px;">
+                <thead><tr><th>Sale de</th><th>Entra a</th><th>Monto</th><th>Descripción</th></tr></thead>
+                <tbody id="filasTraslados"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <section id="seccionTraslado" hidden>
+        <h2>Trasladar dinero entre cuentas</h2>
+        <p>Usa esto, por ejemplo, cuando retiras producido de Caja diaria y lo guardas en el Fondo físico mensual. El traslado no cambia la utilidad y no se registra como gasto.</p>
+        <form id="formTraslado">
+            <div class="transfer-grid">
+                <label>Fecha
+                    <input type="date" id="fechaTraslado" required>
+                </label>
+                <label>Sale de
+                    <select id="cuentaOrigen" required></select>
+                </label>
+                <label>Entra a
+                    <select id="cuentaDestino" required></select>
+                </label>
+                <label>Monto ($)
+                    <input type="number" id="montoTraslado" min="0.01" step="0.01" required>
+                </label>
+                <label>Descripción
+                    <input type="text" id="descripcionTraslado" maxlength="300" required placeholder="Ej. Producido de caja al fondo">
+                </label>
+            </div>
+            <div class="actions">
+                <button type="submit">Registrar traslado</button>
+                <span id="estadoTraslado" class="muted" role="status"></span>
+            </div>
+        </form>
+    </section>
+</main>
+<script>
+    const nombresCuentas = {
+        caja: 'Caja diaria',
+        fondo: 'Fondo físico mensual',
+        bancolombia: 'Bancolombia',
+        nequi: 'Nequi',
+        otros_digitales: 'Otros medios digitales (Daviplata/PSE)'
+    };
+    const api = ruta => new URL(`api/${ruta}`, window.location.href);
+    const formato = monto => `$ ${Number(monto || 0).toLocaleString('es-CO')}`;
+    const fechaLocal = desplazamiento => {
+        const fecha = new Date();
+        fecha.setDate(fecha.getDate() + desplazamiento);
+        return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
+    };
+    let proyeccionActual = null;
+
+    async function solicitar(ruta, opciones) {
+        try {
+            const respuesta = await fetch(api(ruta), opciones);
+            if (respuesta.status === 401 || (respuesta.redirected && respuesta.url.includes('/login.html'))) {
+                window.location.href = 'login.html';
+                throw new Error('Tu sesión expiró. Inicia sesión de nuevo.');
+            }
+            if (respuesta.status === 403) {
+                window.location.href = 'menu.html';
+                throw new Error('No tienes permiso para esta acción.');
+            }
+
+            const tipoContenido = respuesta.headers.get('content-type') || '';
+            const esJson = tipoContenido.toLowerCase().includes('application/json');
+            if (!respuesta.ok) {
+                if (!esJson) {
+                    throw new Error(`El servidor respondió con el estado ${respuesta.status}. Intenta de nuevo o contacta al administrador.`);
+                }
+                let errorApi;
+                try {
+                    errorApi = await respuesta.json();
+                } catch {
+                    throw new Error(`El servidor respondió con el estado ${respuesta.status}, pero no envió un mensaje válido.`);
+                }
+                throw new Error(errorApi.mensaje || `No se pudo completar la solicitud (${respuesta.status}).`);
+            }
+            if (!esJson) {
+                throw new Error('El servidor devolvió una página web en lugar de datos. Recarga la sesión y verifica que Node esté ejecutando la versión actual.');
+            }
+
+            let datos;
+            try {
+                datos = await respuesta.json();
+            } catch {
+                throw new Error('El servidor envió una respuesta de datos inválida. Intenta recargar la página.');
+            }
+            if (!datos || typeof datos !== 'object' || !datos.exito) {
+                throw new Error(datos?.mensaje || 'La respuesta del servidor no contiene datos válidos.');
+            }
+            return datos;
+        } catch (error) {
+            if (error instanceof TypeError) {
+                throw new Error('No se pudo conectar con el servidor. Verifica que Node esté iniciado e inténtalo de nuevo.');
+            }
+            throw error;
+        }
+    }
+
+    function mensaje(id, texto) {
+        document.getElementById(id).textContent = texto;
+    }
+
+    async function cargarControl() {
+        const fecha = document.getElementById('fechaControl').value;
+        const hoy = fechaLocal(0);
+        if (!fecha) return;
+        proyeccionActual = null;
+        document.getElementById('descargarResumenCierre').disabled = true;
+        try {
+            const datos = await solicitar(`control-diario?fecha=${encodeURIComponent(fecha)}`);
+            document.getElementById('estadoCargaControl').hidden = true;
+            document.getElementById('configuracion').hidden = datos.configurado;
+            document.getElementById('seccionControl').hidden = !datos.configurado || datos.fechaAnteriorAlInicio;
+            document.getElementById('seccionTraslado').hidden = !datos.configurado || datos.fechaAnteriorAlInicio;
+            document.getElementById('mensajeEspera').hidden = !datos.configurado || !datos.fechaAnteriorAlInicio;
+            if (!datos.configurado) {
+                mensaje('estadoConfiguracion', 'Configura los saldos reales de inicio para activar el cuadro diario.');
+                return;
+            }
+            if (datos.fechaAnteriorAlInicio) {
+                mensaje('textoEspera', `El nuevo control comienza el ${datos.fechaInicio}. La fecha que estás consultando (${fecha}) es anterior al inicio configurado.`);
+                const filas = document.getElementById('filasAperturaGuardadas');
+                filas.replaceChildren();
+                for (const [cuenta, saldo] of Object.entries(datos.saldosIniciales)) {
+                    const fila = filas.insertRow();
+                    fila.insertCell().textContent = saldo.etiqueta || nombresCuentas[cuenta] || cuenta;
+                    fila.insertCell().textContent = formato(saldo.saldo);
+                }
+                const saldos = datos.saldosIniciales;
+                document.getElementById('totalEfectivoInicial').textContent = formato(
+                    saldos.caja.saldo + saldos.fondo.saldo
+                );
+                document.getElementById('totalDigitalInicial').textContent = formato(
+                    saldos.bancolombia.saldo + saldos.nequi.saldo + saldos.otros_digitales.saldo
+                );
+                mensaje(
+                    'resumenApertura',
+                    `Fecha de inicio guardada: ${datos.fechaInicio}. Los movimientos históricos anteriores permanecen intactos.`
+                );
+                return;
+            }
+            proyeccionActual = datos;
+            const botonResumen = document.getElementById('descargarResumenCierre');
+            botonResumen.disabled = !datos.cierreCompleto;
+            mensaje(
+                'estadoDescargaResumen',
+                datos.cierreCompleto
+                    ? 'Resumen listo: incluye movimientos, arqueo y comparación con la apertura siguiente.'
+                    : 'Guarda el cierre de todas las cuentas para habilitar el resumen.'
+            );
+            mensaje('estadoInicio', `Este control inicia el ${datos.fechaInicio}. Los registros anteriores se conservan en el historial previo.`);
+            const alerta = document.getElementById('alertaSinCuenta');
+            alerta.hidden = !datos.movimientosSinCuenta;
+            alerta.textContent = datos.movimientosSinCuenta
+                ? `Hay ${formato(datos.movimientosSinCuenta)} en movimientos sin cuenta identificada. Revisa los medios de pago antes de cerrar.`
+                : '';
+            const cuerpo = document.getElementById('filasCuentas');
+            cuerpo.replaceChildren();
+            for (const [cuenta, saldo] of Object.entries(datos.cuentas)) {
+                const fila = cuerpo.insertRow();
+                fila.insertCell().textContent = saldo.etiqueta;
+                for (const valor of [
+                    saldo.apertura,
+                    saldo.ventas,
+                    saldo.pagosTramitadores,
+                    saldo.pagosEntidades,
+                    saldo.gastosLocal,
+                    saldo.gastosPersonales,
+                    saldo.trasladosEntrada,
+                    saldo.trasladosSalida,
+                    saldo.esperado
+                ]) {
+                    fila.insertCell().textContent = formato(valor);
+                }
+                const celdaContado = fila.insertCell();
+                const entrada = document.createElement('input');
+                entrada.type = 'number';
+                entrada.min = '0';
+                entrada.step = '0.01';
+                entrada.required = true;
+                entrada.className = 'count-input';
+                entrada.dataset.cuenta = cuenta;
+                entrada.setAttribute('aria-label', `Conteo real de ${saldo.etiqueta}`);
+                entrada.value = saldo.contado === null ? '' : saldo.contado;
+                entrada.addEventListener('input', () => {
+                    if (cuenta === 'caja') {
+                        document.getElementById('dineroContadoInput').value = entrada.value;
+                    }
+                    actualizarDiferencias();
+                    actualizarArqueoCaja();
+                });
+                celdaContado.appendChild(entrada);
+                const diferencia = fila.insertCell();
+                diferencia.dataset.diferencia = cuenta;
+                diferencia.textContent = entrada.value === '' ? '—' : formato(Number(entrada.value) - saldo.esperado);
+            }
+            document.getElementById('dineroContadoInput').value =
+                datos.cuentas.caja.contado === null ? '' : datos.cuentas.caja.contado;
+            document.getElementById('dineroContadoInput').max = '9999999999.99';
+            document.getElementById('saldoFondoEsperado').textContent = formato(datos.cuentas.fondo.esperado);
+            document.getElementById('saldoBancolombiaEsperado').textContent =
+                formato(datos.cuentas.bancolombia.esperado);
+            document.getElementById('saldoNequiEsperado').textContent = formato(datos.cuentas.nequi.esperado);
+            document.getElementById('netoDiaBancolombia').textContent = formato(
+                datos.cuentas.bancolombia.esperado - datos.cuentas.bancolombia.apertura
+            );
+            document.getElementById('netoDiaNequi').textContent = formato(
+                datos.cuentas.nequi.esperado - datos.cuentas.nequi.apertura
+            );
+            document.getElementById('netoDiaCaja').textContent = formato(
+                datos.cuentas.caja.esperado - datos.cuentas.caja.apertura
+            );
+            document.getElementById('saldoOtrosDigitalesEsperado').textContent =
+                formato(datos.cuentas.otros_digitales.esperado);
+            document.getElementById('totalEfectivoFisico').textContent = formato(
+                datos.cuentas.caja.esperado + datos.cuentas.fondo.esperado
+            );
+            document.getElementById('totalDigital').textContent = formato(
+                datos.cuentas.bancolombia.esperado
+                + datos.cuentas.nequi.esperado
+                + datos.cuentas.otros_digitales.esperado
+            );
+            document.getElementById('baseCajaSiguiente').value = datos.arqueoCaja
+                ? datos.arqueoCaja.baseSiguiente
+                : datos.cuentas.caja.contado === null ? '' : datos.cuentas.caja.contado;
+            document.getElementById('fechaGastoPersonal').value = fecha;
+            document.getElementById('fechaGastoPersonal').min = datos.fechaInicio;
+            document.getElementById('fechaGastoPersonal').max = hoy;
+            const filasGastosPersonales = document.getElementById('filasGastosPersonales');
+            filasGastosPersonales.replaceChildren();
+            if (!datos.gastosPersonales.length) {
+                const fila = filasGastosPersonales.insertRow();
+                const celda = fila.insertCell();
+                celda.colSpan = 4;
+                celda.textContent = 'No hay gastos personales registrados para este día.';
+            } else {
+                for (const gasto of datos.gastosPersonales) {
+                    const fila = filasGastosPersonales.insertRow();
+                    for (const valor of [
+                        gasto.etiqueta,
+                        formato(gasto.monto),
+                        gasto.descripcion,
+                        gasto.usuario
+                    ]) fila.insertCell().textContent = valor;
+                }
+            }
+            const filasTraslados = document.getElementById('filasTraslados');
+            filasTraslados.replaceChildren();
+            if (!datos.traslados.length) {
+                const fila = filasTraslados.insertRow();
+                const celda = fila.insertCell();
+                celda.colSpan = 4;
+                celda.textContent = 'No hay traslados registrados para este día.';
+            } else {
+                for (const traslado of datos.traslados) {
+                    const fila = filasTraslados.insertRow();
+                    for (const valor of [
+                        traslado.origen,
+                        traslado.destino,
+                        formato(traslado.monto),
+                        traslado.descripcion
+                    ]) fila.insertCell().textContent = valor;
+                }
+            }
+            document.getElementById('motivoCierre').value = datos.cierreRegistrado
+                ? (datos.motivo || '')
+                : '';
+            actualizarDiferencias();
+            actualizarArqueoCaja();
+            mensaje('estadoCierre', datos.cierreRegistrado
+                ? `Cierre guardado por ${datos.usuario} el ${datos.cerradoEn}. El arqueo y sus correcciones quedan auditados.`
+                : 'No hay cierre guardado para esta fecha.');
+            document.getElementById('fechaTraslado').value = hoy;
+            document.getElementById('fechaTraslado').max = hoy;
+        } catch (error) {
+            document.getElementById('estadoCargaControl').hidden = false;
+            document.getElementById('mensajeCargaControl').textContent =
+                `No se pudo cargar el control diario: ${error.message} Verifica que hayas iniciado sesión como administrador, seleccionado una sede y reiniciado el servidor con npm start.`;
+            mensaje('estadoCierre', error.message);
+        }
+    }
+
+    function actualizarDiferencias() {
+        if (!proyeccionActual) return;
+        for (const entrada of document.querySelectorAll('[data-cuenta]')) {
+            const cuenta = entrada.dataset.cuenta;
+            const celda = document.querySelector(`[data-diferencia="${cuenta}"]`);
+            if (!entrada.value) {
+                celda.textContent = '—';
+                celda.className = '';
+                continue;
+            }
+            const diferencia = Number(entrada.value) - proyeccionActual.cuentas[cuenta].esperado;
+            celda.textContent = formato(diferencia);
+            celda.className = diferencia < 0
+                ? 'difference-negative'
+                : diferencia > 0 ? 'difference-positive' : 'difference-even';
+        }
+    }
+
+    function actualizarArqueoCaja() {
+        if (!proyeccionActual) return;
+        const entradaContado = document.getElementById('dineroContadoInput');
+        const entradaBase = document.getElementById('baseCajaSiguiente');
+        const esperado = proyeccionActual.cuentas.caja.esperado;
+        const contado = entradaContado && entradaContado.value !== ''
+            ? Number(entradaContado.value)
+            : null;
+        const base = entradaBase.value === '' ? null : Number(entradaBase.value);
+        document.getElementById('dineroEsperadoCaja').textContent = formato(esperado);
+        const salidaDiferencia = document.getElementById('diferenciaArqueoCaja');
+        const salidaRetirado = document.getElementById('producidoRetirado');
+        salidaDiferencia.className = '';
+        if (contado === null) {
+            salidaDiferencia.textContent = 'Ingresa el conteo físico';
+        } else {
+            const diferencia = contado - esperado;
+            salidaDiferencia.textContent = Math.abs(diferencia) < 0.005
+                ? `Cuadrado: ${formato(0)}`
+                : diferencia < 0
+                    ? `Faltante: ${formato(Math.abs(diferencia))}`
+                    : `Sobrante: ${formato(diferencia)}`;
+            salidaDiferencia.className = diferencia < 0
+                ? 'difference-negative'
+                : diferencia > 0 ? 'difference-positive' : 'difference-even';
+        }
+        entradaBase.max = contado === null ? '' : String(contado);
+        if (contado === null || base === null) {
+            salidaRetirado.textContent = 'Ingresa el conteo y la base';
+        } else if (base > contado) {
+            salidaRetirado.textContent = 'La base no puede superar el conteo';
+        } else {
+            salidaRetirado.textContent = formato(contado - base);
+        }
+        const conteosCompletos = [...document.querySelectorAll('[data-cuenta]')]
+            .every(input => input.value !== '' && Number.isFinite(Number(input.value)) && Number(input.value) >= 0);
+        document.getElementById('guardarCierre').disabled = Boolean(
+            proyeccionActual.movimientosSinCuenta
+            || !conteosCompletos
+            || base === null
+            || !Number.isFinite(base)
+            || (contado !== null && base > contado)
+        );
+    }
+
+    async function descargarResumenCierre() {
+        const boton = document.getElementById('descargarResumenCierre');
+        const estado = document.getElementById('estadoDescargaResumen');
+        const fecha = document.getElementById('fechaControl').value;
+        if (!proyeccionActual?.cierreCompleto || !fecha) {
+            mensaje(estado.id, 'Guarda primero el cierre completo de esta fecha.');
+            return;
+        }
+
+        boton.disabled = true;
+        mensaje(estado.id, 'Generando el resumen PDF...');
+        try {
+            const respuesta = await fetch(api(
+                `control-diario/resumen-cierre.pdf?fecha=${encodeURIComponent(fecha)}`
+            ));
+            if (respuesta.status === 401) {
+                window.location.href = 'login.html';
+                throw new Error('Tu sesión expiró. Inicia sesión de nuevo.');
+            }
+            const tipoContenido = respuesta.headers.get('content-type') || '';
+            if (!respuesta.ok || !tipoContenido.toLowerCase().includes('application/pdf')) {
+                let detalle = 'No se pudo generar el resumen del cierre.';
+                if (tipoContenido.toLowerCase().includes('application/json')) {
+                    const datos = await respuesta.json();
+                    detalle = datos.mensaje || detalle;
+                }
+                throw new Error(detalle);
+            }
+
+            const archivo = await respuesta.blob();
+            const enlace = document.createElement('a');
+            const url = URL.createObjectURL(archivo);
+            enlace.href = url;
+            enlace.download = `arqueo-${fecha}.pdf`;
+            document.body.appendChild(enlace);
+            enlace.click();
+            enlace.remove();
+            window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+            mensaje(estado.id, 'Resumen PDF descargado. Incluye la comparación con la apertura del día siguiente.');
+        } catch (error) {
+            console.error('Error al descargar el resumen PDF del arqueo:', error);
+            mensaje(estado.id, error.message || 'No se pudo descargar el resumen PDF.');
+        } finally {
+            boton.disabled = !proyeccionActual?.cierreCompleto;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const hoy = fechaLocal(0);
+        document.getElementById('fechaControl').value = hoy;
+        document.getElementById('fechaControl').max = hoy;
+        document.getElementById('fechaInicio').value = fechaLocal(1);
+        document.getElementById('fechaInicio').min = hoy;
+        document.getElementById('fechaInicio').max = fechaLocal(1);
+        const cuentas = Object.entries(nombresCuentas);
+        for (const id of ['cuentaOrigen', 'cuentaDestino']) {
+            const select = document.getElementById(id);
+            select.replaceChildren(...cuentas.map(([cuenta, nombre]) => new Option(nombre, cuenta)));
+        }
+        const cuentaGastoPersonal = document.getElementById('cuentaGastoPersonal');
+        cuentaGastoPersonal.replaceChildren(
+            new Option('Selecciona una cuenta', ''),
+            ...cuentas.map(([cuenta, nombre]) => new Option(nombre, cuenta))
+        );
+        document.getElementById('cuentaOrigen').value = 'caja';
+        document.getElementById('cuentaDestino').value = 'fondo';
+        document.getElementById('fechaTraslado').value = hoy;
+        document.getElementById('fechaTraslado').max = hoy;
+        document.getElementById('mostrarFormularioGastoPersonal').addEventListener('click', () => {
+            const area = document.getElementById('areaGastoPersonal');
+            area.hidden = !area.hidden;
+        });
+        document.getElementById('accesoGastoPersonal').addEventListener('click', evento => {
+            evento.preventDefault();
+            if (document.getElementById('seccionControl').hidden) {
+                document.getElementById('estadoCargaControl').hidden = false;
+                mensaje(
+                    'mensajeCargaControl',
+                    'El registro de gastos personales estará disponible cuando llegue la fecha de inicio del control.'
+                );
+                document.getElementById('estadoCargaControl').scrollIntoView({ behavior: 'smooth' });
+                return;
+            }
+            document.getElementById('areaGastoPersonal').hidden = false;
+            document.getElementById('areaGastoPersonal').scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('fechaGastoPersonal').focus();
+        });
+        document.getElementById('accesoCierreArqueo').addEventListener('click', evento => {
+            evento.preventDefault();
+            if (document.getElementById('seccionControl').hidden) {
+                document.getElementById('estadoCargaControl').hidden = false;
+                mensaje(
+                    'mensajeCargaControl',
+                    'El cierre y arqueo estarán disponibles desde la fecha de inicio configurada para el control.'
+                );
+                document.getElementById('estadoCargaControl').scrollIntoView({ behavior: 'smooth' });
+                return;
+            }
+            document.getElementById('cierreArqueo').scrollIntoView({ behavior: 'smooth' });
+        });
+        document.getElementById('baseCajaSiguiente').addEventListener('input', actualizarArqueoCaja);
+        document.getElementById('dineroContadoInput').addEventListener('input', evento => {
+            const entradaCaja = document.querySelector('[data-cuenta="caja"]');
+            entradaCaja.value = evento.currentTarget.value;
+            actualizarDiferencias();
+            actualizarArqueoCaja();
+        });
+        document.getElementById('adelantarInicioHoy').addEventListener('click', async evento => {
+            if (!confirm('¿Confirmas usar estos importes como saldos al inicio de hoy? Los movimientos de hoy se sumarán o restarán a partir de ellos. Solo se cambia la fecha, no los valores. No se puede adelantar si ya hay movimientos o cierres en el nuevo control.')) return;
+            const boton = evento.currentTarget;
+            boton.disabled = true;
+            try {
+                const resultado = await solicitar('control-diario/aperturas/adelantar-a-hoy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+                mensaje('estadoAdelantarInicio', resultado.mensaje);
+                await cargarControl();
+            } catch (error) {
+                mensaje('estadoAdelantarInicio', error.message);
+                boton.disabled = false;
+            }
+        });
+        document.getElementById('fechaControl').addEventListener('change', cargarControl);
+        document.getElementById('descargarResumenCierre').addEventListener('click', descargarResumenCierre);
+        document.getElementById('formAperturas').addEventListener('submit', async evento => {
+            evento.preventDefault();
+            const formulario = new FormData(evento.currentTarget);
+            const saldos = Object.fromEntries(
+                ['caja', 'fondo', 'bancolombia', 'nequi', 'otros_digitales']
+                    .map(cuenta => [cuenta, Number(formulario.get(cuenta))])
+            );
+            const fechaInicio = document.getElementById('fechaInicio').value;
+            if (!confirm(`¿Confirmas estos saldos reales para iniciar el nuevo control el ${fechaInicio}? Esta configuración no se puede repetir desde la pantalla.`)) return;
+            try {
+                const resultado = await solicitar('control-diario/aperturas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fechaInicio, saldos })
+                });
+                mensaje('estadoConfiguracion', resultado.mensaje);
+                await cargarControl();
+            } catch (error) {
+                mensaje('estadoConfiguracion', error.message);
+            }
+        });
+        document.getElementById('formCierre').addEventListener('submit', async evento => {
+            evento.preventDefault();
+            if (!proyeccionActual || !confirm('¿Confirmas que estos son los saldos realmente contados?')) return;
+            const boton = document.getElementById('guardarCierre');
+            boton.disabled = true;
+            const contados = Object.fromEntries(
+                [...document.querySelectorAll('[data-cuenta]')]
+                    .map(input => [input.dataset.cuenta, Number(input.value)])
+            );
+            try {
+                const resultado = await solicitar('control-diario/cierre', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        fecha: document.getElementById('fechaControl').value,
+                        contados,
+                        baseCajaSiguiente: Number(document.getElementById('baseCajaSiguiente').value),
+                        motivo: document.getElementById('motivoCierre').value.trim()
+                    })
+                });
+                mensaje('estadoCierre', resultado.mensaje);
+                await cargarControl();
+            } catch (error) {
+                mensaje('estadoCierre', error.message);
+            } finally {
+                actualizarArqueoCaja();
+            }
+        });
+        document.getElementById('formGastoPersonal').addEventListener('submit', async evento => {
+            evento.preventDefault();
+            const formulario = evento.currentTarget;
+            const fecha = document.getElementById('fechaGastoPersonal').value;
+            const cuenta = cuentaGastoPersonal.value;
+            const monto = Number(document.getElementById('montoGastoPersonal').value);
+            if (!confirm(`¿Confirmas registrar ${formato(monto)} como gasto personal desde ${nombresCuentas[cuenta]} el ${fecha}?`)) return;
+            const boton = formulario.querySelector('button[type="submit"]');
+            boton.disabled = true;
+            try {
+                const resultado = await solicitar('control-diario/gastos-personales', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        fecha,
+                        cuenta,
+                        monto,
+                        descripcion: document.getElementById('descripcionGastoPersonal').value.trim()
+                    })
+                });
+                mensaje('estadoGastoPersonal', resultado.mensaje);
+                formulario.reset();
+                document.getElementById('fechaGastoPersonal').value = document.getElementById('fechaControl').value;
+                await cargarControl();
+            } catch (error) {
+                mensaje('estadoGastoPersonal', error.message);
+            } finally {
+                boton.disabled = false;
+            }
+        });
+        document.getElementById('formTraslado').addEventListener('submit', async evento => {
+            evento.preventDefault();
+            const boton = evento.currentTarget.querySelector('button[type="submit"]');
+            const cuentaOrigen = document.getElementById('cuentaOrigen').value;
+            const cuentaDestino = document.getElementById('cuentaDestino').value;
+            const monto = Number(document.getElementById('montoTraslado').value);
+            if (!confirm(`¿Confirmas trasladar ${formato(monto)} de ${nombresCuentas[cuentaOrigen]} a ${nombresCuentas[cuentaDestino]}?`)) return;
+            boton.disabled = true;
+            try {
+                const resultado = await solicitar('control-diario/traslados', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        fecha: document.getElementById('fechaTraslado').value,
+                        cuentaOrigen,
+                        cuentaDestino,
+                        monto,
+                        descripcion: document.getElementById('descripcionTraslado').value.trim()
+                    })
+                });
+                mensaje('estadoTraslado', resultado.mensaje);
+                evento.currentTarget.reset();
+                document.getElementById('fechaTraslado').value = hoy;
+                document.getElementById('cuentaOrigen').value = 'caja';
+                document.getElementById('cuentaDestino').value = 'fondo';
+                await cargarControl();
+            } catch (error) {
+                mensaje('estadoTraslado', error.message);
+            } finally {
+                boton.disabled = false;
+            }
+        });
+        await cargarControl();
+    });
+</script>
+</body>
+</html>

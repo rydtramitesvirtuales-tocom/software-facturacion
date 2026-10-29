@@ -1,4 +1,4 @@
- {
+{
   "name": "software-facturacion",
   "version": "1.0.0",
   "description": "",
@@ -11,8 +11,10 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "express": "^4.19.2",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.3",
     "express-session": "^1.19.0",
-    "mysql2": "^3.24.5"
+    "mysql2": "^3.24.6",
+    "pdfkit": "^0.17.2"
   }
 }

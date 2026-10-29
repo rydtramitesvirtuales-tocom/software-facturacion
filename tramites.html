@@ -179,7 +179,6 @@
     </style>
 </head>
 <body>
-
     <div class="header-ejecutivo">
         <h1 class="titulo-principal">
             📦 CONTROL Y ESTADO DE TRÁMITES
@@ -203,67 +202,193 @@
                     <th>TIPO DE TRÁMITE</th>
                     <th>PAGO</th>
                     <th>ESTADO TRÁMITE</th>
+                    <th>ACCIÓN</th>
                 </tr>
             </thead>
             <tbody>
                 <!-- Se llena dinámicamente -->
             </tbody>
         </table>
+        <p><a href="ingresos-gastos.html">Ver auditoría de anulaciones contables</a></p>
     </div>
 
     <script>
+    let puedeCambiarEstado = false;
+
+    async function generarPdfTramite(id, consecutivo, compartir = false) {
+        try {
+            const respuesta = await fetch(new URL(`api/facturas/${encodeURIComponent(id)}/pdf`, window.location.href));
+            const tipoContenido = respuesta.headers.get('content-type') || '';
+            if (!respuesta.ok || !tipoContenido.includes('application/pdf')) {
+                if (respuesta.status === 401) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                let mensaje = 'No se pudo generar el PDF del trámite.';
+                if (tipoContenido.includes('application/json')) {
+                    const datos = await respuesta.json();
+                    mensaje = datos.mensaje || mensaje;
+                }
+                throw new Error(mensaje);
+            }
+
+            const archivo = await respuesta.blob();
+            const nombre = `factura-${String(consecutivo || id).replace(/[^a-zA-Z0-9_-]/g, '-')}.pdf`;
+            const archivoPdf = typeof File === 'function'
+                ? new File([archivo], nombre, { type: 'application/pdf' })
+                : null;
+            if (compartir && archivoPdf && navigator.share && navigator.canShare?.({ files: [archivoPdf] })) {
+                try {
+                    await navigator.share({
+                        title: 'Comprobante de pago',
+                        text: 'Comprobante de pago de RD Gestiones Empresariales.',
+                        files: [archivoPdf]
+                    });
+                    return;
+                } catch (error) {
+                    if (error.name === 'AbortError') throw error;
+                    console.warn('El dispositivo no pudo abrir el menú para compartir el PDF; se descargará el archivo.', error);
+                }
+            }
+
+            const url = URL.createObjectURL(archivo);
+            const enlace = document.createElement('a');
+            enlace.href = url;
+            enlace.download = nombre;
+            document.body.appendChild(enlace);
+            enlace.click();
+            enlace.remove();
+            window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+        } catch (error) {
+            if (error.name === 'AbortError') return;
+            console.error('Error al generar o compartir el PDF del trámite:', error);
+            alert(error.message || 'No se pudo generar el PDF del trámite.');
+        }
+    }
+
     // 1. Cargar el listado de trámites desde el servidor filtrado por sede
     function cargarTramites() {
-        const sedeId = localStorage.getItem('sede_activa_id') || '1';
-
-        fetch(`http://localhost:3000/api/listar-tramites?sedeId=${sedeId}`)
-            .then(res => res.json())
+        fetch(new URL('api/listar-tramites', window.location.href))
+            .then(async res => {
+                if (res.status === 401) {
+                    window.location.href = 'login.html';
+                    return null;
+                }
+                if (!res.ok) throw new Error('No se pudieron consultar los trámites.');
+                return res.json();
+            })
             .then(data => {
+                if (!data) return;
                 const tbody = document.querySelector('table tbody');
                 if (!tbody) return;
-                tbody.innerHTML = '';
+                tbody.replaceChildren();
 
-               if (data.exito && data.lista && data.lista.length > 0) {
-                data.lista.forEach(item => {
-                    console.log("CAMPOS DE LA FILA:", item); // Impresión para ver los nombres reales de las columnas
-
+                if (data.exito && data.lista && data.lista.length > 0) {
+                    data.lista.forEach(item => {
                     const fila = document.createElement('tr');
                     const idUnico = item.id_registro;
-                    const consecutivo = item.consecutivo || item.id;
+                    const consecutivo = item.consecutivo || item.id || '';
                     const estadoTramite = (item.estado || 'PENDIENTE').toUpperCase();
                     const estadoPago = (item.estado_pago || item.pago || 'PENDIENTE').toUpperCase();
-    if (estadoPago === 'PAGADO') {
-        htmlPago = `<span class="badge-interactivo badge-pagado" onclick="cambiarEstadoPago('${idUnico}', '${estadoPago}')" title="Clic para alternar">💳 PAGADO</span>`;
-    } else {
-        htmlPago = `<span class="badge-interactivo badge-pago-pend" onclick="cambiarEstadoPago('${idUnico}', '${estadoPago}')" title="Clic para alternar">⏳ PENDIENTE</span>`;
-    }
+                    const celdaConsecutivo = fila.insertCell();
+                    const etiquetaConsecutivo = document.createElement('strong');
+                    etiquetaConsecutivo.style.color = 'var(--gold-primary)';
+                    etiquetaConsecutivo.style.letterSpacing = '0.5px';
+                    etiquetaConsecutivo.textContent = consecutivo;
+                    celdaConsecutivo.appendChild(etiquetaConsecutivo);
 
-    let htmlTramite = '';
-    if (estadoTramite === 'LISTO' || estadoTramite === 'FINALIZADO') {
-        htmlTramite = `<span class="badge-interactivo badge-listo" onclick="cambiarEstado('${idUnico}', '${estadoTramite}')" title="Clic para alternar">✨ LISTO</span>`;
-    } else {
-        htmlTramite = `<span class="badge-interactivo badge-tramite-pend" onclick="cambiarEstado('${idUnico}', '${estadoTramite}')" title="Clic para alternar">📦 PENDIENTE</span>`;
-    }
+                    const celdaCliente = fila.insertCell();
+                    celdaCliente.style.fontWeight = '500';
+                    celdaCliente.style.color = '#e2e8f0';
+                    celdaCliente.textContent = item.cliente || item.nombre_cliente || 'CLIENTE GENERAL';
 
-    fila.innerHTML = `
-        <td><strong style="color: var(--gold-primary); letter-spacing: 0.5px;">${consecutivo}</strong></td>
-        <td style="font-weight: 500; color: #e2e8f0;">${item.cliente || item.nombre_cliente || 'CLIENTE GENERAL'}</td>
-        <td style="color: var(--text-muted);">${item.tipo_tramite || item.servicio || 'TRÁMITE'}</td>
-        <td>${htmlPago}</td>
-        <td>${htmlTramite}</td>
-    `;
-    tbody.appendChild(fila);
-});
+                    const celdaTramite = fila.insertCell();
+                    celdaTramite.style.color = 'var(--text-muted)';
+                    celdaTramite.textContent = item.tipo_tramite || item.servicio || 'TRÁMITE';
+
+                    const puedeEditarRegistro = puedeCambiarEstado && Number.isInteger(Number(idUnico));
+                    const crearEstado = (estado, clase, texto, callback) => {
+                        const etiqueta = document.createElement('span');
+                        etiqueta.className = `badge-interactivo ${clase}`;
+                        etiqueta.textContent = texto;
+                        if (puedeEditarRegistro) {
+                            etiqueta.title = 'Clic para alternar';
+                            etiqueta.addEventListener('click', () => callback(idUnico, estado));
+                        }
+                        return etiqueta;
+                    };
+
+                    const celdaPago = fila.insertCell();
+                    celdaPago.appendChild(estadoPago === 'PAGADO'
+                        ? crearEstado(estadoPago, 'badge-pagado', '💳 PAGADO', cambiarEstadoPago)
+                        : crearEstado(estadoPago, 'badge-pago-pend', '⏳ PENDIENTE', cambiarEstadoPago));
+
+                    const celdaEstado = fila.insertCell();
+                    const tramiteListo = estadoTramite === 'LISTO' || estadoTramite === 'FINALIZADO';
+                    celdaEstado.appendChild(tramiteListo
+                        ? crearEstado(estadoTramite, 'badge-listo', '✨ LISTO', cambiarEstado)
+                        : crearEstado(estadoTramite, 'badge-tramite-pend', '📦 PENDIENTE', cambiarEstado));
+                    const celdaAccion = fila.insertCell();
+                    const botonPdf = document.createElement('button');
+                    botonPdf.type = 'button';
+                    botonPdf.textContent = 'Descargar PDF';
+                    botonPdf.style.cssText = 'background:#d4af37;color:#10131a;border:0;border-radius:6px;padding:8px 10px;font-weight:700;cursor:pointer;margin:2px;';
+                    botonPdf.addEventListener('click', () => generarPdfTramite(idUnico, consecutivo));
+                    celdaAccion.appendChild(botonPdf);
+                    const botonCompartirPdf = document.createElement('button');
+                    botonCompartirPdf.type = 'button';
+                    botonCompartirPdf.textContent = 'Compartir PDF';
+                    botonCompartirPdf.style.cssText = 'background:#25D366;color:#fff;border:0;border-radius:6px;padding:8px 10px;font-weight:700;cursor:pointer;margin:2px;';
+                    botonCompartirPdf.addEventListener('click', () => generarPdfTramite(idUnico, consecutivo, true));
+                    celdaAccion.appendChild(botonCompartirPdf);
+                    if (puedeEditarRegistro) {
+                        const botonAnular = document.createElement('button');
+                        botonAnular.type = 'button';
+                        botonAnular.textContent = 'Anular';
+                        botonAnular.style.margin = '2px';
+                        botonAnular.addEventListener('click', () => anularVenta(idUnico, consecutivo));
+                        celdaAccion.appendChild(botonAnular);
+                    }
+                    tbody.appendChild(fila);
+                    });
                 } else {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 30px; color: var(--text-muted);">No hay trámites registrados para esta sede</td></tr>';
+                    const fila = tbody.insertRow();
+                    const celda = fila.insertCell();
+                    celda.colSpan = 6;
+                    celda.style.cssText = 'text-align:center; padding:30px; color:var(--text-muted);';
+                    celda.textContent = 'No hay trámites registrados para esta sede';
                 }
             })
             .catch(err => console.error("Error al cargar trámites:", err));
     }
 
+    async function anularVenta(id, consecutivo) {
+        if (!confirm(`¿Anular la venta ${consecutivo}? Se conservará en el historial y dejará de contar en los balances.`)) return;
+        const motivo = prompt('Indica el motivo de la anulación (mínimo 5 caracteres):');
+        if (motivo === null || motivo.trim().length < 5) {
+            alert('El motivo debe tener al menos 5 caracteres. No se anuló la venta.');
+            return;
+        }
+        try {
+            const respuesta = await fetch(new URL(`api/operaciones/venta/${encodeURIComponent(id)}/anular`, window.location.href), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ motivo })
+            });
+            const resultado = await respuesta.json();
+            if (!respuesta.ok || !resultado.exito) {
+                throw new Error(resultado.mensaje || 'No se pudo anular la venta.');
+            }
+            alert('Venta anulada y guardada en el historial.');
+            cargarTramites();
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+
     // 2. Función para cambiar el estado operativo del trámite usando su id único
     function cambiarEstado(id, estadoActual) {
-        fetch('http://localhost:3000/api/cambiar-estado-tramite', {
+        fetch(new URL('api/cambiar-estado-tramite', window.location.href), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id: id, estadoActual: estadoActual })
@@ -281,7 +406,7 @@
 
     // 3. Función para cambiar el estado de pago usando su id único
     function cambiarEstadoPago(id, estadoPagoActual) {
-        fetch('http://localhost:3000/api/cambiar-estado-pago', {
+        fetch(new URL('api/cambiar-estado-pago', window.location.href), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id: id, estadoPagoActual: estadoPagoActual })
@@ -300,314 +425,18 @@
         });
     }
 
-    document.addEventListener('DOMContentLoaded', cargarTramites);
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            const response = await fetch(new URL('api/sesion', window.location.href));
+            if (!response.ok) throw new Error('La sesión expiró.');
+            const sesion = await response.json();
+            puedeCambiarEstado = sesion.rol === 'ADMINISTRADOR';
+            cargarTramites();
+        } catch (error) {
+            console.error('No se pudieron validar los permisos:', error);
+            window.location.href = 'login.html';
+        }
+    });
     </script>
 
 </body>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RD Gestiones - Control de Trámites</title>
-    <style>
-    :root {
-        --bg-primary: #07090e;
-        --bg-secondary: #0f131d;
-        --bg-card: #141a26;
-        --gold-primary: #d4af37;
-        --gold-light: #f3e5ab;
-        --gold-dark: #aa820a;
-        --text-main: #f0f4f8;
-        --text-muted: #8c9ba5;
-        --border-gold: rgba(212, 175, 55, 0.25);
-    }
-
-    body {
-        background: radial-gradient(circle at top, #111726 0%, var(--bg-primary) 70%);
-        color: var(--text-main);
-        font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-        min-height: 100vh;
-        margin: 0;
-        padding: 20px;
-    }
-
-    .dashboard-wrapper {
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-
-    .tabla-tramites {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0 12px;
-        margin-top: 20px;
-    }
-
-    .tabla-tramites thead th {
-        background: linear-gradient(135deg, #1b2230 0%, #121620 100%);
-        color: var(--gold-light);
-        font-size: 0.78rem;
-        letter-spacing: 1.5px;
-        text-transform: uppercase;
-        padding: 16px 20px;
-        border-top: 1px solid var(--border-gold);
-        border-bottom: 1px solid var(--border-gold);
-        font-weight: 600;
-    }
-
-    .tabla-tramites thead th:first-child { border-left: 1px solid var(--border-gold); border-radius: 10px 0 0 10px; }
-    .tabla-tramites thead th:last-child { border-right: 1px solid var(--border-gold); border-radius: 0 10px 10px 0; }
-
-    .tabla-tramites tbody tr {
-        background: var(--bg-card);
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    }
-
-    .tabla-tramites tbody tr:hover {
-        background: #1a2233;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(212, 175, 55, 0.12);
-        border-color: var(--gold-primary);
-    }
-
-    .tabla-tramites td {
-        padding: 18px 20px;
-        vertical-align: middle;
-        border-top: 1px solid rgba(255, 255, 255, 0.03);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-        font-size: 0.92rem;
-    }
-
-    .tabla-tramites td:first-child { border-left: 1px solid rgba(255, 255, 255, 0.03); border-radius: 10px 0 0 10px; }
-    .tabla-tramites td:last-child { border-right: 1px solid rgba(255, 255, 255, 0.03); border-radius: 0 10px 10px 0; }
-
-    .header-ejecutivo {
-        text-align: center;
-        padding: 30px 20px;
-        margin-bottom: 30px;
-        position: relative;
-        border-bottom: 1px solid rgba(212, 175, 55, 0.25);
-        background: radial-gradient(circle at center, rgba(212, 175, 55, 0.05) 0%, transparent 70%);
-    }
-
-    .titulo-principal {
-        font-size: 2.2rem;
-        font-weight: 800;
-        background: linear-gradient(135deg, #fff3c4 0%, #d4af37 50%, #99750f 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-shadow: 0 4px 20px rgba(212, 175, 55, 0.25);
-        letter-spacing: 1.5px;
-        margin: 0 0 10px 0;
-    }
-
-    .subtitulo-principal {
-        color: #94a3b8;
-        font-size: 0.95rem;
-        letter-spacing: 0.8px;
-        margin-bottom: 20px;
-        font-weight: 400;
-    }
-
-    .btn-regresar-menu {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(212, 175, 55, 0.08);
-        color: #f3e5ab;
-        border: 1px solid rgba(212, 175, 55, 0.3);
-        padding: 10px 24px;
-        border-radius: 30px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        text-decoration: none;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        letter-spacing: 0.5px;
-    }
-
-    .btn-regresar-menu:hover {
-        background: linear-gradient(135deg, #d4af37 0%, #aa820a 100%);
-        color: #07090e;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(212, 175, 55, 0.45);
-        border-color: #d4af37;
-    }
-
-    .badge-interactivo {
-        padding: 7px 16px;
-        border-radius: 30px;
-        font-weight: 600;
-        font-size: 0.78rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        cursor: pointer;
-        transition: all 0.25s ease;
-        letter-spacing: 0.5px;
-        user-select: none;
-    }
-
-    .badge-interactivo:hover {
-        transform: scale(1.05);
-        filter: brightness(1.25);
-    }
-
-    .badge-pagado {
-        background: rgba(46, 204, 113, 0.1);
-        color: #2ecc71;
-        border: 1px solid rgba(46, 204, 113, 0.3);
-        box-shadow: 0 0 12px rgba(46, 204, 113, 0.08);
-    }
-
-    .badge-pago-pend {
-        background: rgba(212, 175, 55, 0.1);
-        color: var(--gold-light);
-        border: 1px solid var(--border-gold);
-        box-shadow: 0 0 12px rgba(212, 175, 55, 0.08);
-    }
-
-    .badge-listo {
-        background: rgba(52, 152, 219, 0.1);
-        color: #5dade2;
-        border: 1px solid rgba(52, 152, 219, 0.3);
-        box-shadow: 0 0 12px rgba(52, 152, 219, 0.08);
-    }
-
-    .badge-tramite-pend {
-        background: rgba(231, 76, 60, 0.1);
-        color: #e74c3c;
-        border: 1px solid rgba(231, 76, 60, 0.3);
-        box-shadow: 0 0 12px rgba(231, 76, 60, 0.08);
-    }
-    </style>
-</head>
-<body>
-
-    <div class="header-ejecutivo">
-        <h1 class="titulo-principal">
-            📦 CONTROL Y ESTADO DE TRÁMITES
-        </h1>
-        <p class="subtitulo-principal">
-            Seguimiento operativo interno de expedientes y entregas
-        </p>
-        <div>
-            <a href="menu.html" class="btn-regresar-menu">
-                🏠 REGRESAR AL MENÚ
-            </a>
-        </div>
-    </div>
-
-    <div class="dashboard-wrapper">
-        <table class="tabla-tramites">
-            <thead>
-                <tr>
-                    <th>CONSECUTIVO</th>
-                    <th>CLIENTE</th>
-                    <th>TIPO DE TRÁMITE</th>
-                    <th>PAGO</th>
-                    <th>ESTADO TRÁMITE</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Se llena dinámicamente -->
-            </tbody>
-        </table>
-    </div>
-
-    <script>
-    // 1. Cargar el listado de trámites desde el servidor filtrado por sede
-    function cargarTramites() {
-        const sedeId = localStorage.getItem('sede_activa_id') || '1';
-
-        fetch(`http://localhost:3000/api/listar-tramites?sedeId=${sedeId}`)
-            .then(res => res.json())
-            .then(data => {
-                const tbody = document.querySelector('table tbody');
-                if (!tbody) return;
-                tbody.innerHTML = '';
-
-               if (data.exito && data.lista && data.lista.length > 0) {
-                data.lista.forEach(item => {
-                    console.log("CAMPOS DE LA FILA:", item); // Impresión para ver los nombres reales de las columnas
-
-                    const fila = document.createElement('tr');
-                    const idUnico = item.id_registro;
-                    const consecutivo = item.consecutivo || item.id;
-                    const estadoTramite = (item.estado || 'PENDIENTE').toUpperCase();
-                    const estadoPago = (item.estado_pago || item.pago || 'PENDIENTE').toUpperCase();
-    if (estadoPago === 'PAGADO') {
-        htmlPago = `<span class="badge-interactivo badge-pagado" onclick="cambiarEstadoPago('${idUnico}', '${estadoPago}')" title="Clic para alternar">💳 PAGADO</span>`;
-    } else {
-        htmlPago = `<span class="badge-interactivo badge-pago-pend" onclick="cambiarEstadoPago('${idUnico}', '${estadoPago}')" title="Clic para alternar">⏳ PENDIENTE</span>`;
-    }
-
-    let htmlTramite = '';
-    if (estadoTramite === 'LISTO' || estadoTramite === 'FINALIZADO') {
-        htmlTramite = `<span class="badge-interactivo badge-listo" onclick="cambiarEstado('${idUnico}', '${estadoTramite}')" title="Clic para alternar">✨ LISTO</span>`;
-    } else {
-        htmlTramite = `<span class="badge-interactivo badge-tramite-pend" onclick="cambiarEstado('${idUnico}', '${estadoTramite}')" title="Clic para alternar">📦 PENDIENTE</span>`;
-    }
-
-    fila.innerHTML = `
-        <td><strong style="color: var(--gold-primary); letter-spacing: 0.5px;">${consecutivo}</strong></td>
-        <td style="font-weight: 500; color: #e2e8f0;">${item.cliente || item.nombre_cliente || 'CLIENTE GENERAL'}</td>
-        <td style="color: var(--text-muted);">${item.tipo_tramite || item.servicio || 'TRÁMITE'}</td>
-        <td>${htmlPago}</td>
-        <td>${htmlTramite}</td>
-    `;
-    tbody.appendChild(fila);
-});
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 30px; color: var(--text-muted);">No hay trámites registrados para esta sede</td></tr>';
-                }
-            })
-            .catch(err => console.error("Error al cargar trámites:", err));
-    }
-
-    // 2. Función para cambiar el estado operativo del trámite usando su id único
-    function cambiarEstado(id, estadoActual) {
-        fetch('http://localhost:3000/api/cambiar-estado-tramite', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: id, estadoActual: estadoActual })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.exito) {
-                cargarTramites();
-            } else {
-                alert("No se pudo actualizar el estado: " + (data.error || "Error desconocido"));
-            }
-        })
-        .catch(err => console.error("Error:", err));
-    }
-
-    // 3. Función para cambiar el estado de pago usando su id único
-    function cambiarEstadoPago(id, estadoPagoActual) {
-        fetch('http://localhost:3000/api/cambiar-estado-pago', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: id, estadoPagoActual: estadoPagoActual })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.exito) {
-                cargarTramites();
-            } else {
-                alert("No se pudo actualizar el pago: " + (data.error || "Error"));
-            }
-        })
-        .catch(err => {
-            console.error("Error de conexión:", err);
-            alert("Error al conectar con el servidor.");
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', cargarTramites);
-    </script>
-
-</body>
-</html>

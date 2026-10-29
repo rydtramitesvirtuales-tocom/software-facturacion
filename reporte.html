@@ -2,189 +2,477 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RD Gestiones - Reporte de Ventas Diario</title>
+    <title>Reporte Diario de Ventas y Gastos - RD Gestiones</title>
     <style>
-        body { background-color: #0c1017; color: #ffffff; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background-color: #161b22; border: 1px solid #ffcc00; border-radius: 12px; padding: 35px; width: 450px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); text-align: center; }
-        h2 { color: #ffcc00; margin: 0 0 5px 0; font-size: 22px; letter-spacing: 1px; }
-        .subtitle { color: #8b949e; font-size: 13px; margin: 0 0 30px 0; }
-        .item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #21262d; font-size: 15px; }
-        .total-box { display: flex; justify-content: space-between; margin-top: 20px; padding: 15px; background-color: #0d1117; border-radius: 8px; border: 1px solid #30363d; }
-        .btn { width: 100%; padding: 12px; background-color: #1f2937; border: 1px solid #30363d; color: #c9d1d9; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; text-decoration: none; display: block; box-sizing: border-box; margin-top: 25px; transition: border-color 0.3s; }
-        .btn:hover { border-color: #ffcc00; color: white; }
+        /* Estilos generales y modo impresión */
+        body {
+            background-color: #0b0e14;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #121821;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        .header-title {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .header-title h2 {
+            color: #f1c40f;
+            margin: 0;
+            font-size: 22px;
+        }
+        .header-title p {
+            color: #888;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+        /* Tarjetas KPI superiores */
+        .kpi-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .kpi-card {
+            background: #1e2530;
+            padding: 18px;
+            border-radius: 8px;
+            border-left: 4px solid #f1c40f;
+        }
+        .kpi-card:nth-child(2) { border-left-color: #e74c3c; }
+        .kpi-card:nth-child(3) { border-left-color: #3498db; }
+        .kpi-card:nth-child(4) { border-left-color: #2ecc71; }
+        .kpi-title {
+            font-size: 11px;
+            color: #888;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .kpi-value {
+            font-size: 22px;
+            font-weight: bold;
+            color: #fff;
+        }
+        .balance-clarification {
+            margin: -12px 0 24px;
+            padding: 12px 16px;
+            background: #1e2530;
+            border-left: 4px solid #3498db;
+            border-radius: 6px;
+            color: #d7e3f0;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        /* Secciones y Tablas */
+        .section-title {
+            color: #f1c40f;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 30px 0 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #161a22;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+        .report-table th {
+            background: #1e2530;
+            color: #f1c40f;
+            text-align: left;
+            padding: 12px 15px;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+        .report-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #2a3441;
+            font-size: 13px;
+            color: #ddd;
+        }
+        .detail-table-scroll { overflow-x: auto; }
+        .detail-table-scroll .report-table { min-width: 1100px; }
+        .report-table tr:last-child td {
+            border-bottom: none;
+        }
+        /* Botones de acción inferior */
+        .actions-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 35px;
+            padding-top: 20px;
+            border-top: 1px solid #2a3441;
+        }
+        .btn-menu {
+            background: #1e2530;
+            color: #fff;
+            border: 1px solid #3a4454;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .btn-menu:hover { background: #2a3441; }
+        .btn-print {
+            background: #f1c40f;
+            color: #0b0e14;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .btn-print:hover { background: #d4ac0d; }
+        .daily-controls {
+            display: flex;
+            justify-content: center;
+            align-items: end;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 18px 0 24px;
+        }
+        .daily-controls input, .campo-cierre {
+            box-sizing: border-box;
+            padding: 10px;
+            border: 1px solid #3a4454;
+            border-radius: 6px;
+            background: #0b0e14;
+            color: #fff;
+        }
+        .daily-controls label { color: #bbb; }
+        .cierre-diario-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+        .cierre-account {
+            padding: 16px;
+            background: #1e2530;
+            border-radius: 8px;
+        }
+        .cierre-account h3 { color: #f1c40f; margin-top: 0; }
+        .dato-cierre {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid #2a3441;
+            color: #bbb;
+        }
+        .dato-cierre strong { color: #fff; }
+        .campo-cierre { width: 100%; margin-top: 8px; }
+        .cierre-section {
+            background: #161a22;
+            border: 1px solid #2a3441;
+            border-radius: 8px;
+            padding: 18px;
+            margin: 20px 0 28px;
+        }
+        .cierre-section .section-title { margin-top: 0; }
+        @media (max-width: 700px) {
+            .cierre-diario-grid { grid-template-columns: 1fr; }
+            .container { padding: 18px; }
+        }
+
+        @page {
+            size: A4 landscape;
+            margin: 10mm;
+        }
+        @media print {
+            html, body {
+                width: auto;
+                min-height: 0;
+                margin: 0;
+                padding: 0;
+                background: #fff !important;
+                color: #000 !important;
+            }
+            .container {
+                width: 100%;
+                max-width: none;
+                margin: 0;
+                padding: 0;
+                overflow: visible;
+                background: #fff;
+                box-shadow: none;
+            }
+            .header-title { margin-bottom: 12px; break-inside: avoid; page-break-inside: avoid; }
+            .header-title h2, .section-title { color: #000 !important; }
+            .kpi-container {
+                grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+                gap: 6px;
+                margin-bottom: 12px !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            .kpi-card {
+                min-width: 0;
+                padding: 8px;
+                background: #f8f9fa;
+                border: 1px solid #ddd;
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            .kpi-title { font-size: 8px; }
+            .kpi-value { color: #000 !important; font-size: 14px; }
+            .balance-clarification {
+                margin: 0 0 12px;
+                padding: 8px 10px;
+                background: #f8f9fa;
+                border: 1px solid #ddd;
+                border-left: 4px solid #3498db;
+                color: #222;
+                font-size: 10px;
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            .section-title {
+                margin: 12px 0 6px;
+                break-after: avoid;
+                page-break-after: avoid;
+            }
+            .detail-table-scroll { overflow: visible; }
+            .detail-table-scroll .report-table {
+                min-width: 0;
+                table-layout: fixed;
+            }
+            .report-table {
+                width: 100%;
+                margin-bottom: 12px;
+                overflow: visible;
+                background: #fff;
+                border: 1px solid #ddd;
+                border-radius: 0;
+                break-inside: auto;
+                page-break-inside: auto;
+            }
+            .report-table thead { display: table-header-group; }
+            .report-table tr { break-inside: avoid; page-break-inside: avoid; }
+            .report-table th, .report-table td {
+                padding: 5px 4px;
+                font-size: 8px;
+                overflow-wrap: anywhere;
+                word-break: break-word;
+            }
+            .report-table th { background: #eee; color: #000; }
+            .report-table td { border-bottom: 1px solid #ddd; color: #333; }
+            .actions-container, .daily-controls { display: none !important; }
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2>📊 REPORTE DE VENTAS DIARIO</h2>
-        <p class="subtitle">Consolidado general de ingresos y distribución de gastos</p>
-        
-        <div class="item">
-            <span style="color: #8b949e;">📅 Fecha de Consulta:</span>
-            <strong id="lblFecha">--/--/----</strong>
-        </div>
-        <div class="item">
-            <span style="color: #8b949e;">💰 Ingresos Brutos (Clientes):</span>
-            <strong style="color: #2ea44f;" id="lblIngresos">$0</strong>
-        </div>
-        <div class="item">
-            <span style="color: #8b949e;">💸 Pagos Totales a Entidades:</span>
-            <strong style="color: #f85149;" id="lblEntidades">$0</strong>
-        </div>
-        <div class="item">
-            <span style="color: #8b949e;">🤝 Comisiones a Tramitadores:</span>
-            <strong style="color: #f85149;" id="lblTramitadores">$0</strong>
-        </div>
-        
-        <div class="total-box">
-            <span style="color: #ffcc00; font-weight: bold;">💵 UTILIDAD NETO EN CAJA:</span>
-            <strong style="color: #ffcc00; font-size: 18px;" id="lblNeto">$0</strong>
-        </div>
-        
-        <!-- Ruta de retorno corregida sin barra inicial o absoluta segura -->
-        <a href="http://localhost/FACTURADOR/menu.html" class="btn">🏠 REGRESAR AL MENÚ</a>
+
+<div class="container">
+    <!-- Encabezado -->
+    <div class="header-title">
+        <h2>🏢 RD GESTIONES EMPRESARIALES</h2>
+        <p>REPORTE Y CONSOLIDADO DIARIO DE OPERACIONES</p>
     </div>
 
-    <script>
-       // Interceptamos el fetch incluyendo credenciales de sesión para el puerto 3000
-        const originalFetchReporte = window.fetch;
-
-        window.fetch = function(url, options) {
-            const sedeId = localStorage.getItem('sede_activa_id') || 1;
-            if (typeof url === 'string' && url.includes('/api/reporte-contable-diario')) {
-                url = `http://localhost:3000/api/reporte-contable-diario?sedeId=${sedeId}`;
-            }
-            
-            // Forzamos el envío de cookies/sesión entre puertos
-            options = options || {};
-            options.credentials = 'include';
-            
-            return originalFetchReporte(url, options);
-        };
-        // Consultamos la API contable al cargar la pantalla
-        fetch('/api/reporte-contable-diario')
-            .then(res => {
-                if (res.status === 403) {
-                    alert("⛔ Acceso Denegado: Módulo financiero exclusivo para el Administrador.");
-                    window.location.href = 'http://localhost/FACTURADOR/menu.html';
-                    throw new Error();
-                }
-                return res.json();
-            })
-            .then(data => {
-                if (data) {
-                    const fechaHoy = new Date().toLocaleDateString('es-CO');
-                    document.getElementById('lblFecha').innerText = data.fecha || fechaHoy;
-                    
-                    const ingresos = Number(data.ingresos || 0);
-                    const entidades = Number(data.entidades || 0);
-                    const tramitadores = Number(data.tramitadores || 0);
-                    
-                    const neto = ingresos - entidades - tramitadores;
-
-                    document.getElementById('lblIngresos').innerText = "$" + ingresos.toLocaleString('es-CO');
-                    document.getElementById('lblEntidades').innerText = "$" + entidades.toLocaleString('es-CO');
-                    document.getElementById('lblTramitadores').innerText = "$" + tramitadores.toLocaleString('es-CO');
-                    document.getElementById('lblNeto').innerText = "$" + neto.toLocaleString('es-CO');
-                }
-            })
-            .catch(err => console.error("Error al cargar balance:", err));
-    </script>
-</body>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RD Gestiones - Reporte de Ventas Diario</title>
-    <style>
-        body { background-color: #0c1017; color: #ffffff; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background-color: #161b22; border: 1px solid #ffcc00; border-radius: 12px; padding: 35px; width: 450px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); text-align: center; }
-        h2 { color: #ffcc00; margin: 0 0 5px 0; font-size: 22px; letter-spacing: 1px; }
-        .subtitle { color: #8b949e; font-size: 13px; margin: 0 0 30px 0; }
-        .item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #21262d; font-size: 15px; }
-        .total-box { display: flex; justify-content: space-between; margin-top: 20px; padding: 15px; background-color: #0d1117; border-radius: 8px; border: 1px solid #30363d; }
-        .btn { width: 100%; padding: 12px; background-color: #1f2937; border: 1px solid #30363d; color: #c9d1d9; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; text-decoration: none; display: block; box-sizing: border-box; margin-top: 25px; transition: border-color 0.3s; }
-        .btn:hover { border-color: #ffcc00; color: white; }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <h2>📊 REPORTE DE VENTAS DIARIO</h2>
-        <p class="subtitle">Consolidado general de ingresos y distribución de gastos</p>
-        
-        <div class="item">
-            <span style="color: #8b949e;">📅 Fecha de Consulta:</span>
-            <strong id="lblFecha">--/--/----</strong>
-        </div>
-        <div class="item">
-            <span style="color: #8b949e;">💰 Ingresos Brutos (Clientes):</span>
-            <strong style="color: #2ea44f;" id="lblIngresos">$0</strong>
-        </div>
-        <div class="item">
-            <span style="color: #8b949e;">💸 Pagos Totales a Entidades:</span>
-            <strong style="color: #f85149;" id="lblEntidades">$0</strong>
-        </div>
-        <div class="item">
-            <span style="color: #8b949e;">🤝 Comisiones a Tramitadores:</span>
-            <strong style="color: #f85149;" id="lblTramitadores">$0</strong>
-        </div>
-        
-        <div class="total-box">
-            <span style="color: #ffcc00; font-weight: bold;">💵 UTILIDAD NETO EN CAJA:</span>
-            <strong style="color: #ffcc00; font-size: 18px;" id="lblNeto">$0</strong>
-        </div>
-        
-        <!-- Ruta de retorno corregida sin barra inicial o absoluta segura -->
-        <a href="http://localhost/FACTURADOR/menu.html" class="btn">🏠 REGRESAR AL MENÚ</a>
+    <div class="daily-controls">
+        <label for="fechaReporte">Fecha de operación<br>
+            <input type="date" id="fechaReporte" required>
+        </label>
+        <button type="button" class="btn-print" onclick="cargarReporteDiario().catch(error => alert(error.message))">Consultar día</button>
     </div>
 
-    <script>
-       // Interceptamos el fetch incluyendo credenciales de sesión para el puerto 3000
-        const originalFetchReporte = window.fetch;
+    <!-- Tarjetas KPI Superiores -->
+<div class="kpi-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 20px;">
+    <div class="kpi-card"><span class="kpi-title">TOTAL INGRESOS</span><span class="kpi-value" id="lblTotalIngresos">$ 0</span></div>
+    <div class="kpi-card"><span class="kpi-title">GASTOS TRÁMITES</span><span class="kpi-value" id="lblGastosTramites" style="color: #e67e22;">$ 0</span></div>
+    <div class="kpi-card"><span class="kpi-title">INGRESOS MENOS PAGOS DE TRÁMITES</span><span class="kpi-value" id="lblTotalEnCaja">$ 0</span></div>
+    <div class="kpi-card"><span class="kpi-title">GASTOS DEL LOCAL</span><span class="kpi-value" id="lblGastosLocal" style="color: #e74c3c;">$ 0</span></div>
+    <div class="kpi-card"><span class="kpi-title">NETO REAL</span><span class="kpi-value" id="lblNetoReal">$ 0</span></div>
+    <div class="kpi-card"><span class="kpi-title">INGRESOS A CAJA</span><span class="kpi-value" id="lblEfectivoCaja">$ 0</span></div>
+    <div class="kpi-card"><span class="kpi-title">INGRESOS A BANCO</span><span class="kpi-value" id="lblDineroBanco">$ 0</span></div>
+    <div class="kpi-card"><span class="kpi-title">VALOR REGISTRADO A TRAMITADORES</span><span class="kpi-value" id="lblTotalTramitadores">$ 0</span></div>
+    <div class="kpi-card"><span class="kpi-title">PAGOS REGISTRADOS A ENTIDADES</span><span class="kpi-value" id="lblTotalEntidades">$ 0</span></div>
+</div>
+<p class="balance-clarification">
+    Los gastos del local son egresos y el neto real es un resultado del día; ninguno equivale al saldo de caja.
+    Los saldos finales conciliados se consultan en Balance y se calculan desde una sola fuente para el periodo.
+</p>
+    <div id="alertaSinClasificar" class="cierre-section" hidden style="color: #f6d365;"></div>
 
-        window.fetch = function(url, options) {
-            const sedeId = localStorage.getItem('sede_activa_id') || 1;
-            if (typeof url === 'string' && url.includes('/api/reporte-contable-diario')) {
-                url = `http://localhost:3000/api/reporte-contable-diario?sedeId=${sedeId}`;
-            }
-            
-            // Forzamos el envío de cookies/sesión entre puertos
-            options = options || {};
-            options.credentials = 'include';
-            
-            return originalFetchReporte(url, options);
-        };
-        // Consultamos la API contable al cargar la pantalla
-        fetch('/api/reporte-contable-diario')
-            .then(res => {
-                if (res.status === 403) {
-                    alert("⛔ Acceso Denegado: Módulo financiero exclusivo para el Administrador.");
-                    window.location.href = 'http://localhost/FACTURADOR/menu.html';
-                    throw new Error();
+    <!-- Tabla 1: Detalle de Ingresos, Clientes y Tramitadores -->
+    <div class="section-title">📄 DETALLE DE INGRESOS, CLIENTES Y TRAMITADORES</div>
+    <p style="color: #aaa; font-size: 12px; margin-top: -6px;">
+        Los valores de tramitador y entidad corresponden a lo registrado en cada factura. La cuenta indicada es el medio de salida seleccionado.
+        El sistema aún no marca por separado si cada pago quedó pagado o pendiente.
+    </p>
+    <div class="detail-table-scroll">
+    <table class="report-table">
+        <thead>
+            <tr>
+                <th>CONSECUTIVO</th>
+                <th>CLIENTE / CC</th>
+                <th>TRÁMITE / SERVICIO</th>
+                <th>TRAMITADOR</th>
+                <th>RECIBIDO EN</th>
+                <th>VALOR COBRADO</th>
+                <th>VALOR TRAMITADOR</th>
+                <th>CUENTA DE SALIDA</th>
+                <th>PAGO ENTIDAD</th>
+                <th>CUENTA DE SALIDA</th>
+            </tr>
+        </thead>
+        <tbody id="tablaVentas">
+            <tr>
+                <td colspan="10" style="text-align: center; color: #888;">Cargando transacciones...</td>
+            </tr>
+        </tbody>
+    </table>
+    </div>
+
+    <!-- Tabla 2: Registro de Gastos de Local -->
+    <div class="section-title">🏷️ REGISTRO DE GASTOS DE LOCAL</div>
+    <table class="report-table">
+        <thead>
+            <tr>
+                <th>FECHA</th>
+                <th>CATEGORÍA</th>
+                <th>DESCRIPCIÓN</th>
+                <th>CUENTA DE SALIDA</th>
+                <th>MONTO</th>
+            </tr>
+        </thead>
+        <tbody id="tablaGastos">
+            <tr>
+                <td colspan="5" style="text-align: center; color: #888;">Cargando gastos de local...</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Botones Inferiores -->
+    <div class="actions-container">
+        <a href="menu.html" class="btn-menu">🏠 REGRESAR AL MENÚ</a>
+        <button class="btn-print" onclick="window.print()">🖨️ IMPRIMIR O GUARDAR PDF</button>
+    </div>
+</div>
+<script>
+const API_BASE = new URL('api/', window.location.href);
+const formatoDinero = valor => `$ ${Number(valor || 0).toLocaleString('es-CO')}`;
+
+async function cargarReporteDiario() {
+    const fecha = document.getElementById('fechaReporte').value;
+    if (!fecha) {
+        alert('Selecciona la fecha del reporte.');
+        return;
+    }
+    const response = await fetch(new URL(`reporte-contable-diario?fecha=${encodeURIComponent(fecha)}`, API_BASE));
+    const data = await response.json();
+    if (response.status === 401) {
+        window.location.href = 'login.html';
+        return;
+    }
+    if (response.status === 403) {
+        window.location.href = 'menu.html';
+        return;
+    }
+    if (!response.ok || !data.exito) throw new Error(data.mensaje || 'No se pudo cargar el reporte diario.');
+
+    document.querySelector('.header-title p').textContent =
+        `REPORTE Y CONSOLIDADO DIARIO DE OPERACIONES · ${new Date(`${fecha}T12:00:00`).toLocaleDateString('es-CO')}`;
+    document.getElementById('lblTotalIngresos').textContent = formatoDinero(data.totalIngresos);
+    document.getElementById('lblGastosTramites').textContent = formatoDinero(data.gastosTramites);
+    document.getElementById('lblTotalEnCaja').textContent = formatoDinero(data.totalEnCaja);
+    document.getElementById('lblGastosLocal').textContent = formatoDinero(data.gastosLocal);
+    document.getElementById('lblNetoReal').textContent = formatoDinero(data.neto);
+    document.getElementById('lblNetoReal').style.color = Number(data.neto) < 0 ? '#e74c3c' : '#2ecc71';
+    document.getElementById('lblEfectivoCaja').textContent = formatoDinero(data.ingresosCaja);
+    document.getElementById('lblDineroBanco').textContent = formatoDinero(data.ingresosBanco);
+    document.getElementById('lblTotalTramitadores').textContent = formatoDinero(
+        data.ventas.reduce((total, venta) => total + Number(venta.precio_tramitador || 0), 0)
+    );
+    document.getElementById('lblTotalEntidades').textContent = formatoDinero(
+        data.ventas.reduce((total, venta) => total + Number(venta.pago_entidad || 0), 0)
+    );
+
+    const tbodyVentas = document.getElementById('tablaVentas');
+    tbodyVentas.replaceChildren();
+    if (!data.ventas.length) {
+        tbodyVentas.innerHTML = '<tr><td colspan="10" style="text-align: center; color: #888;">No hay ventas registradas para este día.</td></tr>';
+    } else {
+        data.ventas.forEach(venta => {
+            const fila = tbodyVentas.insertRow();
+            [
+                venta.consecutivo || `Venta #${venta.id_registro}`,
+                `${venta.nombre_cliente || 'Consumidor Final'} · ${venta.documento_cliente || 'Sin documento'}`,
+                venta.tipo_tramite || 'Trámite',
+                venta.tramitador_responsable || 'Ninguno',
+                venta.destino_fondos || 'Sin clasificar',
+                formatoDinero(venta.precio_tramite),
+                formatoDinero(venta.precio_tramitador),
+                venta.precio_tramitador > 0 ? (venta.metodo_pago_tramitador || 'Sin cuenta registrada') : 'No aplica',
+                formatoDinero(venta.pago_entidad),
+                venta.pago_entidad > 0 ? (venta.metodo_pago_entidad || 'Sin cuenta registrada') : 'No aplica'
+            ].forEach((valor, indice) => {
+                const celda = fila.insertCell();
+                if (indice === 0) {
+                    const consecutivo = document.createElement('strong');
+                    consecutivo.textContent = valor;
+                    celda.appendChild(consecutivo);
+                } else {
+                    celda.textContent = valor;
                 }
-                return res.json();
-            })
-            .then(data => {
-                if (data) {
-                    const fechaHoy = new Date().toLocaleDateString('es-CO');
-                    document.getElementById('lblFecha').innerText = data.fecha || fechaHoy;
-                    
-                    const ingresos = Number(data.ingresos || 0);
-                    const entidades = Number(data.entidades || 0);
-                    const tramitadores = Number(data.tramitadores || 0);
-                    
-                    const neto = ingresos - entidades - tramitadores;
+            });
+        });
+    }
 
-                    document.getElementById('lblIngresos').innerText = "$" + ingresos.toLocaleString('es-CO');
-                    document.getElementById('lblEntidades').innerText = "$" + entidades.toLocaleString('es-CO');
-                    document.getElementById('lblTramitadores').innerText = "$" + tramitadores.toLocaleString('es-CO');
-                    document.getElementById('lblNeto').innerText = "$" + neto.toLocaleString('es-CO');
-                }
-            })
-            .catch(err => console.error("Error al cargar balance:", err));
-    </script>
-</body>
+    const tbodyGastos = document.getElementById('tablaGastos');
+    tbodyGastos.replaceChildren();
+    if (!data.gastos.length) {
+        tbodyGastos.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #888;">Sin gastos de local para este día.</td></tr>';
+    } else {
+        data.gastos.forEach(gasto => {
+            const fila = tbodyGastos.insertRow();
+            [
+                gasto.fecha || '',
+                gasto.categoria || 'Local',
+                gasto.descripcion || 'Sin descripción',
+                gasto.fuente_pago || 'Sin clasificar',
+                formatoDinero(gasto.monto)
+            ].forEach(valor => {
+                const celda = fila.insertCell();
+                celda.textContent = valor;
+            });
+        });
+    }
 
-</html>
+    const alerta = document.getElementById('alertaSinClasificar');
+    alerta.hidden = !Number(data.movimientosSinClasificar);
+    alerta.textContent = Number(data.movimientosSinClasificar)
+        ? `Hay ${formatoDinero(data.movimientosSinClasificar)} en movimientos con medio de pago no clasificado. Revísalos antes de cerrar.`
+        : '';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const fecha = document.getElementById('fechaReporte');
+    const ahora = new Date();
+    fecha.value = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`;
+    fecha.max = fecha.value;
+    fecha.addEventListener('change', () => cargarReporteDiario().catch(error => alert(error.message)));
+    cargarReporteDiario().catch(error => {
+        alert(error.message);
+    });
+});
+</script>
