@@ -5,9 +5,11 @@ const path = require('path');
 const fs = require('fs');
 const PDFDocument = require('pdfkit');
 require('dotenv').config();
+process.env.TZ = process.env.TZ || 'America/Bogota';
 
 const app = express();
 app.disable('x-powered-by');
+const zonaHorariaNegocio = '-05:00';
 
 const modoProduccion = process.env.NODE_ENV === 'production';
 const sessionSecret = process.env.SESSION_SECRET;
@@ -83,6 +85,7 @@ const configuracionConexion = {
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'centro_tramites_daniel',
     port: Number(process.env.DB_PORT || 3306),
+    timezone: zonaHorariaNegocio,
     ...(certificadoCa ? { ssl: { ca: certificadoCa } } : {})
 };
 const conexion = mysql.createConnection(configuracionConexion);
@@ -92,6 +95,7 @@ async function ejecutarTransaccion(operacion) {
     const db = conexionTransaccion.promise();
     let iniciada = false;
     try {
+        await db.query(`SET time_zone = '${zonaHorariaNegocio}'`);
         await db.beginTransaction();
         iniciada = true;
         const resultado = await operacion(db);
@@ -1271,7 +1275,7 @@ app.get('/logout', (req, res) => {
 // ==========================================
 
 // Endpoint: Registrar Venta Completa
-app.post('/api/facturar-completa', (req, res) => {
+app.post('/api/facturar-completa', async (req, res) => {
   try {
     const celular_cliente = req.body.cellular || req.body.celular || "";
     const {
@@ -1285,6 +1289,33 @@ app.post('/api/facturar-completa', (req, res) => {
             exito: false,
             mensaje: 'Selecciona cómo pagó el cliente y dónde ingresó el dinero.'
         });
+    }
+
+    const fechaVenta = String(req.body.fechaVenta || '').trim();
+    if (fechaVenta && !esFechaCalendarioValida(fechaVenta)) {
+        return res.status(400).json({
+            exito: false,
+            mensaje: 'La fecha de la venta no es válida.'
+        });
+    }
+    if (fechaVenta) {
+        try {
+            const [[hoyRow]] = await conexion.promise().query(
+                "SELECT DATE_FORMAT(CURDATE(), '%Y-%m-%d') AS hoy"
+            );
+            if (fechaVenta > hoyRow.hoy) {
+                return res.status(400).json({
+                    exito: false,
+                    mensaje: 'No se puede registrar una venta con fecha futura.'
+                });
+            }
+        } catch (error) {
+            console.error('No se pudo validar la fecha de la venta:', error);
+            return res.status(500).json({
+                exito: false,
+                mensaje: 'No se pudo validar la fecha de la venta.'
+            });
+        }
     }
 
     const email_cliente = email || "";
@@ -1306,16 +1337,17 @@ app.post('/api/facturar-completa', (req, res) => {
     }
     const metodoPagoTramitador = v_precio_tramitador > 0 ? pago_tramitador : 'Ninguno';
     const metodoPagoEntidad = v_pago_entidad > 0 ? m_pago_entidad : 'Ninguno';
+    const fechaHoraVenta = fechaVenta ? `${fechaVenta} 12:00:00` : null;
 
     const sqlVenta = `INSERT INTO registro_ventas_completo 
-    (consecutivo, nombre_cliente, documento_cliente, celular_cliente, email_cliente, tipo_tramite, tramitador_responsable, metodo_pago_tramitador, metodo_pago_entidad, destino_fondos, precio_tramite, precio_tramitador, pago_entidad, observaciones_notas, sede_id)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    (consecutivo, nombre_cliente, documento_cliente, celular_cliente, email_cliente, tipo_tramite, tramitador_responsable, metodo_pago_tramitador, metodo_pago_entidad, destino_fondos, precio_tramite, precio_tramitador, pago_entidad, observaciones_notas, sede_id, fecha_hora)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, CURRENT_TIMESTAMP))`;
 
     const valoresVenta = [
         consecutivo, nombre, documento, celular_cliente, email_cliente, 
         tramite, tramitador, metodoPagoTramitador, metodoPagoEntidad, destino,
         v_precio_tramite, v_precio_tramitador, v_pago_entidad,
-        notas, v_sede_id
+        notas, v_sede_id, fechaHoraVenta
     ];
 
     conexion.query(sqlVenta, valoresVenta, (err, result) => {
@@ -2628,10 +2660,10 @@ app.get('/api/indicadores-dia', verificarAdministrador, async (req, res) => {
 app.get('/api/reporte-contable-mensual', verificarAdministrador, async (req, res) => {
     try {
         const sedeId = req.session.sedeActivaId;
-        const mes = req.query.mes || (() => {
-            const ahora = new Date();
-            return `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}`;
-        })();
+        const [[periodoActual]] = await conexion.promise().query(
+            "SELECT DATE_FORMAT(CURDATE(), '%Y-%m') AS periodo"
+        );
+        const mes = req.query.mes || periodoActual.periodo;
         if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(String(mes))) {
             return res.status(400).json({ exito: false, mensaje: 'El periodo debe tener el formato YYYY-MM.' });
         }
@@ -3226,7 +3258,9 @@ conexion.connect(error => {
         return;
     }
 
-    sessionStore.onReady().then(() => {
+    conexion.promise().query(`SET time_zone = '${zonaHorariaNegocio}'`).then(() =>
+        sessionStore.onReady()
+    ).then(() => {
         console.log('Conexiones a MySQL listas.');
         const servidor = app.listen(PORT, HOST, () => {
             console.log(`Servidor Contable RD escuchando en ${HOST}:${PORT}`);
@@ -3235,8 +3269,8 @@ conexion.connect(error => {
             console.error(`No se pudo iniciar el servidor en ${HOST}:${PORT}:`, errorEscucha.message);
             process.exitCode = 1;
         });
-    }).catch(errorAlIniciarSesiones => {
-        console.error('No se pudo preparar la tabla de sesiones; el servidor no se iniciará:', errorAlIniciarSesiones.message);
+    }).catch(errorAlIniciar => {
+        console.error('No se pudo configurar la zona horaria o preparar las tablas de inicio; el servidor no se iniciará:', errorAlIniciar.message);
         process.exitCode = 1;
     });
 });

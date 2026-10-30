@@ -81,7 +81,12 @@
                     </select>
                 </div>
             </div>
-            <div class="title">Observaciones</div>
+            <div class="title">Fecha de la venta y observaciones</div>
+            <div class="f-group">
+                <label for="fechaVenta">Fecha de la venta</label>
+                <input type="date" id="fechaVenta">
+                <small style="color:#94a3b8;">Puedes registrar ventas de hoy o de días anteriores. No se permiten fechas futuras.</small>
+            </div>
             <div class="f-group"><textarea id="not" rows="1" placeholder="Credenciales de acceso, usuarios, claves..."></textarea></div>
         </div>
         <div style="display:flex; flex-direction:column; gap:15px; position:sticky; top:15px;">
@@ -133,6 +138,15 @@
 
     <script>
         let facturaRegistradaId = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const fechaVenta = document.getElementById('fechaVenta');
+            if (!fechaVenta) return;
+            const hoy = new Date();
+            const fechaLocal = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+            fechaVenta.max = fechaLocal;
+            fechaVenta.value = fechaLocal;
+        });
 
         function cargarClienteGenerico() {
             const todosLosInputs = document.querySelectorAll('input');
@@ -382,6 +396,8 @@
                     pago_entidad: p_entidad,         
                     m_pago_entidad: selectMetodoEntidad.value,
                     notas: notasTextarea
+                    ,
+                    fechaVenta: document.getElementById('fechaVenta')?.value || ""
                 };
 
                 fetch('/api/facturar-completa', {
