@@ -145,7 +145,8 @@
             const hoy = new Date();
             const fechaLocal = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
             fechaVenta.max = fechaLocal;
-            fechaVenta.value = fechaLocal;
+            fechaVenta.value = localStorage.getItem('fecha_operativa') || fechaLocal;
+            if (fechaVenta.value > fechaLocal) fechaVenta.value = fechaLocal;
         });
 
         function cargarClienteGenerico() {

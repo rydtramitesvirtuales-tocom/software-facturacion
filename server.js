@@ -2592,16 +2592,20 @@ app.get('/api/ventas-dia', verificarAdministrador, async (req, res) => {
     try {
         // Capturamos el ID de la sede que está activa en el navegador (1 o 2)
         const sedeId = req.query.sedeId || 1;
+        const fecha = String(req.query.fecha || '').trim();
+        if (fecha && !esFechaCalendarioValida(fecha)) {
+            return res.status(400).json({ error: 'La fecha no es válida.' });
+        }
 
         // IMPORTANTE: El WHERE sede_id = ? es el que separa las cuentas
         const [rows] = await conexion.promise().query(
             `SELECT * FROM registro_ventas_completo v
-             WHERE v.sede_id = ? AND DATE(v.fecha_hora) = CURDATE()
+             WHERE v.sede_id = ? AND DATE(v.fecha_hora) = COALESCE(?, CURDATE())
                AND NOT EXISTS (
                    SELECT 1 FROM operaciones_anuladas a
                    WHERE a.tipo = 'venta' AND a.operacion_id = v.id_registro
                )`,
-            [sedeId]
+            [sedeId, fecha || null]
         );
 
         res.json(rows);
@@ -2614,30 +2618,34 @@ app.get('/api/ventas-dia', verificarAdministrador, async (req, res) => {
 app.get('/api/indicadores-dia', verificarAdministrador, async (req, res) => {
     try {
         const sedeId = req.query.sedeId || 1;
+        const fecha = String(req.query.fecha || '').trim();
+        if (fecha && !esFechaCalendarioValida(fecha)) {
+            return res.status(400).json({ exito: false, error: 'La fecha no es válida.' });
+        }
         const [rows] = await conexion.promise().query(
             `SELECT
                 (SELECT COALESCE(SUM(precio_tramite), 0)
                 FROM registro_ventas_completo v
-                WHERE sede_id = ? AND DATE(fecha_hora) = CURDATE()
+                WHERE sede_id = ? AND DATE(fecha_hora) = COALESCE(?, CURDATE())
                   AND NOT EXISTS (
                       SELECT 1 FROM operaciones_anuladas a
                       WHERE a.tipo = 'venta' AND a.operacion_id = v.id_registro
                   )) AS ventasBrutas,
                 (SELECT COALESCE(SUM(COALESCE(precio_tramitador, 0) + COALESCE(pago_entidad, 0)), 0)
                 FROM registro_ventas_completo v
-                WHERE sede_id = ? AND DATE(fecha_hora) = CURDATE()
+                WHERE sede_id = ? AND DATE(fecha_hora) = COALESCE(?, CURDATE())
                   AND NOT EXISTS (
                       SELECT 1 FROM operaciones_anuladas a
                       WHERE a.tipo = 'venta' AND a.operacion_id = v.id_registro
                   )) AS gastosTramites,
                 (SELECT COALESCE(SUM(monto), 0)
                 FROM gastos g
-                WHERE sede_id = ? AND DATE(fecha) = CURDATE()
+                WHERE sede_id = ? AND DATE(fecha) = COALESCE(?, CURDATE())
                   AND NOT EXISTS (
                       SELECT 1 FROM operaciones_anuladas a
                       WHERE a.tipo = 'gasto' AND a.operacion_id = g.id
                   )) AS gastosLocal`,
-            [sedeId, sedeId, sedeId]
+            [sedeId, fecha || null, sedeId, fecha || null, sedeId, fecha || null]
         );
 
         const indicadores = rows[0];

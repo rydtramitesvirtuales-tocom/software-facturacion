@@ -320,12 +320,16 @@
             <p>📞 3017222991</p>
         </div>
         <div class="metrics-container">
+            <div class="metric-card" style="grid-column: 1 / -1;">
+                <div class="metric-title">📅 Día mostrado</div>
+                <input type="date" id="fechaIndicadoresMenu" style="width: 100%; margin-top: 8px;">
+            </div>
             <div class="metric-card">
-                <div class="metric-title">💰 Ventas Brutas Hoy</div>
+                <div class="metric-title">💰 Ventas Brutas del día</div>
                 <div class="metric-value text-green" id="menuVentas">$0</div>
             </div>
             <div class="metric-card border-yellow">
-                <div class="metric-title">📈 Utilidad Neto Hoy</div>
+                <div class="metric-title">📈 Utilidad Neta del día</div>
                 <div class="metric-value text-yellow" id="menuUtilidad">$0</div>
             </div>
         </div>
@@ -378,7 +382,11 @@
 // (Asegúrate de tener el input con id="inputPeriodoReporte" en tu HTML arriba)
 const apiUrl = ruta => new URL(ruta.replace(/^\/+/, ''), window.location.href);
 if (document.getElementById('inputPeriodoReporte')) {
-    document.getElementById('inputPeriodoReporte').value = new Date().toISOString().slice(0, 7);
+    document.getElementById('inputPeriodoReporte').value = new Intl.DateTimeFormat('sv-SE', {
+        timeZone: 'America/Bogota',
+        year: 'numeric',
+        month: '2-digit'
+    }).format(new Date());
 }
 
 function generarReporteSede() {
@@ -405,8 +413,18 @@ function generarReporteSede() {
     window.fetch = function(url, options) {
         const sedeId = localStorage.getItem('sede_activa_id') || 1;
 
-        if (typeof url === 'string' && url.includes('/api/ventas-dia')) {
-            url = apiUrl(`api/ventas-dia?sedeId=${encodeURIComponent(sedeId)}`);
+        if (url instanceof URL || typeof url === 'string') {
+            const urlFinal = url instanceof URL ? new URL(url.toString()) : new URL(url, window.location.href);
+
+            if (urlFinal.pathname.includes('/api/ventas-dia')) {
+                urlFinal.searchParams.set('sedeId', String(sedeId));
+                urlFinal.searchParams.set('fecha', localStorage.getItem('fecha_operativa') || '');
+                url = urlFinal;
+            } else if (urlFinal.pathname.includes('/api/indicadores-dia')) {
+                urlFinal.searchParams.set('sedeId', String(sedeId));
+                urlFinal.searchParams.set('fecha', localStorage.getItem('fecha_operativa') || '');
+                url = urlFinal;
+            }
         }
 
         return originalFetchMenu(url, options);
@@ -415,6 +433,21 @@ function generarReporteSede() {
     document.addEventListener("DOMContentLoaded", async () => {
         const sedeId = localStorage.getItem('sede_activa_id');
         const sedeNombre = localStorage.getItem('sede_activa_nombre');
+        const fechaIndicadores = document.getElementById('fechaIndicadoresMenu');
+        const hoyLocal = (() => {
+            const hoy = new Date();
+            return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+        })();
+        if (fechaIndicadores) {
+            fechaIndicadores.max = hoyLocal;
+            fechaIndicadores.value = localStorage.getItem('fecha_operativa') || hoyLocal;
+            localStorage.setItem('fecha_operativa', fechaIndicadores.value);
+            fechaIndicadores.addEventListener('change', () => {
+                if (!fechaIndicadores.value || fechaIndicadores.value > hoyLocal) return;
+                localStorage.setItem('fecha_operativa', fechaIndicadores.value);
+                cargarIndicadoresMenu();
+            });
+        }
 
         if (!sedeId) {
             window.location.href = 'sedes.html';
@@ -444,11 +477,7 @@ function generarReporteSede() {
         });
         try {
             const respuestaSesion = await fetch(apiUrl('api/sesion'));
-            if (respuestaSesion.status === 401) {
-                window.location.href = 'login.html';
-                return;
-            }
-            if (!respuestaSesion.ok) throw new Error('No se pudo validar la sesión.');
+            if (!respuestaSesion.ok) throw new Error('La sesión expiró. Inicia sesión nuevamente.');
             const sesion = await respuestaSesion.json();
             const elUsuario = document.getElementById('nombreUsuarioActivo');
             if (elUsuario) elUsuario.innerText = sesion.nombre;
@@ -457,30 +486,30 @@ function generarReporteSede() {
                 document.querySelectorAll('.metric-card').forEach(elemento => elemento.remove());
                 return;
             }
+
+            await cargarIndicadoresMenu();
         } catch (error) {
             console.error('No se pudo validar la sesión:', error);
-            alert('No se pudo validar la sesión. Comprueba tu conexión e inténtalo nuevamente.');
-            return;
-        }
-
-        try {
-            const respuestaIndicadores = await fetch(apiUrl(`api/indicadores-dia?_t=${Date.now()}`));
-            if (respuestaIndicadores.status === 401) {
-                window.location.href = 'login.html';
-                return;
-            }
-            if (!respuestaIndicadores.ok) throw new Error('No se pudieron cargar los indicadores diarios.');
-            const data = await respuestaIndicadores.json();
-            if (!data.exito) throw new Error(data.error || 'No se pudieron cargar los indicadores diarios.');
-            const elVentas = document.getElementById('menuVentas');
-            const elUtilidad = document.getElementById('menuUtilidad');
-            if (elVentas) elVentas.innerText = "$" + Number(data.ventasBrutas).toLocaleString('es-CO');
-            if (elUtilidad) elUtilidad.innerText = "$" + Number(data.utilidadNeta).toLocaleString('es-CO');
-        } catch (error) {
-            console.error('No se pudieron cargar los indicadores diarios:', error);
-            alert('Ingresaste correctamente, pero no se pudieron cargar los indicadores. Tu sesión sigue activa; revisa la conexión y vuelve a intentarlo.');
+            window.location.href = 'login.html';
         }
     });
+
+    async function cargarIndicadoresMenu() {
+        const sedeId = localStorage.getItem('sede_activa_id');
+        const fecha = document.getElementById('fechaIndicadoresMenu')?.value
+            || localStorage.getItem('fecha_operativa')
+            || '';
+        const respuestaIndicadores = await fetch(apiUrl(
+            `api/indicadores-dia?sedeId=${encodeURIComponent(sedeId)}&fecha=${encodeURIComponent(fecha)}&_t=${Date.now()}`
+        ));
+        if (!respuestaIndicadores.ok) throw new Error('No se pudieron cargar los indicadores diarios.');
+        const data = await respuestaIndicadores.json();
+        if (!data.exito) throw new Error(data.error || 'No se pudieron cargar los indicadores diarios.');
+        const elVentas = document.getElementById('menuVentas');
+        const elUtilidad = document.getElementById('menuUtilidad');
+        if (elVentas) elVentas.innerText = "$" + Number(data.ventasBrutas).toLocaleString('es-CO');
+        if (elUtilidad) elUtilidad.innerText = "$" + Number(data.utilidadNeta).toLocaleString('es-CO');
+    }
 </script>
 </body>
 </html>
