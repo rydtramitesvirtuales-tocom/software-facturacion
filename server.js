@@ -3102,7 +3102,7 @@ app.get('/api/listar-tramites', (req, res) => {
 
     if (sedeId) {
         query += " AND v.sede_id = ? ORDER BY v.fecha_hora DESC";
-        params = [sedeId];
+        params.push(sedeId);
     } else {
         query += " ORDER BY v.fecha_hora DESC";
     }

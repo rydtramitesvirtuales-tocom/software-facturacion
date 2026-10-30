@@ -275,8 +275,10 @@
     // 1. Cargar el listado de trámites desde el servidor filtrado por sede
     function cargarTramites() {
         const fechaOperativa = localStorage.getItem('fecha_operativa') || '';
+        const sedeId = localStorage.getItem('sede_activa_id') || '';
         const url = new URL('api/listar-tramites', window.location.href);
         if (fechaOperativa) url.searchParams.set('fecha', fechaOperativa);
+        if (sedeId) url.searchParams.set('sedeId', sedeId);
         fetch(url)
             .then(async res => {
                 if (res.status === 401) {
