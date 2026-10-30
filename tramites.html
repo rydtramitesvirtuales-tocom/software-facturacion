@@ -215,6 +215,12 @@
     <script>
     let puedeCambiarEstado = false;
 
+    function formatearFechaOperativa(fecha) {
+        const [year, month, day] = fecha.split('-').map(Number);
+        if (!year || !month || !day) return fecha;
+        return new Date(year, month - 1, day).toLocaleDateString('es-CO');
+    }
+
     async function generarPdfTramite(id, consecutivo, compartir = false) {
         try {
             const respuesta = await fetch(new URL(`api/facturas/${encodeURIComponent(id)}/pdf`, window.location.href));
@@ -359,7 +365,9 @@
                     const celda = fila.insertCell();
                     celda.colSpan = 6;
                     celda.style.cssText = 'text-align:center; padding:30px; color:var(--text-muted);';
-                    celda.textContent = 'No hay trámites registrados para esta sede';
+                    celda.textContent = fechaOperativa
+                        ? `No hay trámites registrados para esta sede el ${formatearFechaOperativa(fechaOperativa)}.`
+                        : 'No hay trámites registrados para esta sede.';
                 }
             })
             .catch(err => console.error("Error al cargar trámites:", err));
