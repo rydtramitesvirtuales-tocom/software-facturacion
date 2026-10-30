@@ -3163,10 +3163,10 @@ app.get('/api/listar-tramites', (req, res) => {
     }
 
     if (sedeId) {
-        query += " AND v.sede_id = ? ORDER BY v.fecha_hora DESC";
+        query += " AND v.sede_id = ? ORDER BY v.fecha_hora DESC, v.id_registro DESC";
         params.push(sedeId);
     } else {
-        query += " ORDER BY v.fecha_hora DESC";
+        query += " ORDER BY v.fecha_hora DESC, v.id_registro DESC";
     }
 
     conexion.query(query, params, (err, results) => {
