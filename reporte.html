@@ -468,8 +468,9 @@ async function cargarReporteDiario() {
 document.addEventListener('DOMContentLoaded', () => {
     const fecha = document.getElementById('fechaReporte');
     const ahora = new Date();
-    fecha.value = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`;
-    fecha.max = fecha.value;
+    fecha.value = localStorage.getItem('fecha_operativa')
+        || `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`;
+    fecha.max = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`;
     fecha.addEventListener('change', () => cargarReporteDiario().catch(error => alert(error.message)));
     cargarReporteDiario().catch(error => {
         alert(error.message);

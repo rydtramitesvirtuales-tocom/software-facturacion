@@ -388,8 +388,9 @@
             const fechaGasto = document.getElementById('fechaGasto');
             const hoy = new Date();
             const hoyLocal = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
-            fechaGasto.value = hoyLocal;
-            fechaGasto.defaultValue = hoyLocal;
+            const fechaOperativa = localStorage.getItem('fecha_operativa') || hoyLocal;
+            fechaGasto.value = fechaOperativa <= hoyLocal ? fechaOperativa : hoyLocal;
+            fechaGasto.defaultValue = fechaGasto.value;
             fechaGasto.max = hoyLocal;
             cargarBalance();
             cargarGastos();

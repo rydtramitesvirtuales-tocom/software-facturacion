@@ -727,7 +727,8 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
         const hoy = fechaLocal(0);
-        document.getElementById('fechaControl').value = hoy;
+        const fechaOperativa = localStorage.getItem('fecha_operativa') || hoy;
+        document.getElementById('fechaControl').value = fechaOperativa <= hoy ? fechaOperativa : hoy;
         document.getElementById('fechaControl').max = hoy;
         document.getElementById('fechaInicio').value = fechaLocal(1);
         document.getElementById('fechaInicio').min = hoy;

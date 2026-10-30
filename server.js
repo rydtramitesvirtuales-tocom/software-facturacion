@@ -3084,12 +3084,21 @@ app.get('/api/reporte-balance-mensual', verificarAdministrador, async (req, res)
 // ENDPOINT ROBUSTO PARA LISTAR LOS TRÁMITES EN LA TABLA
 app.get('/api/listar-tramites', (req, res) => {
     const sedeId = req.query.sedeId;
+    const fecha = String(req.query.fecha || '').trim();
+    if (fecha && !esFechaCalendarioValida(fecha)) {
+        return res.status(400).json({ exito: false, mensaje: 'La fecha seleccionada no es válida.' });
+    }
     let query = `SELECT v.* FROM registro_ventas_completo v
                  WHERE NOT EXISTS (
                      SELECT 1 FROM operaciones_anuladas a
                      WHERE a.tipo = 'venta' AND a.operacion_id = v.id_registro
                  )`;
     let params = [];
+
+    if (fecha) {
+        query += ' AND DATE(v.fecha_hora) = ?';
+        params.push(fecha);
+    }
 
     if (sedeId) {
         query += " AND v.sede_id = ? ORDER BY v.fecha_hora DESC";
