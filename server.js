@@ -1823,6 +1823,19 @@ app.get('/api/control-diario/resumen-cierre.pdf', verificarAdministrador, async 
             const [anio, mes, dia] = valor.split('-');
             return `${dia}/${mes}/${anio}`;
         };
+        const fechaHoraLegible = valor => {
+            if (!valor) return 'No disponible';
+            const fechaValor = new Date(valor);
+            if (Number.isNaN(fechaValor.getTime())) return String(valor);
+            return new Intl.DateTimeFormat('es-CO', {
+                timeZone: 'America/Bogota',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            }).format(fechaValor);
+        };
         const fechaArchivo = fecha.replace(/-/g, '');
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader(
@@ -1968,13 +1981,17 @@ app.get('/api/control-diario/resumen-cierre.pdf', verificarAdministrador, async 
             moneda(arqueo.producidoRetirado)
         ]]);
         asegurarEspacio(34);
+        const textoProducido = 'El producido retirado queda fuera de las cuentas controladas. Una diferencia positiva indica sobrante; una negativa, faltante.';
+        doc.roundedRect(margenIzquierdo, doc.y, ancho, 26, 4).fill('#F3F6FA');
         doc.font('Helvetica').fontSize(7.5).fillColor('#65758B')
-            .text('El producido retirado queda fuera de las cuentas controladas. Una diferencia positiva indica sobrante; una negativa, faltante.', {
-                width: ancho,
-                height: 18,
-                lineGap: 2,
-                ellipsis: false
+            .text(textoProducido, margenIzquierdo + 10, doc.y + 6, {
+                width: ancho - 20,
+                height: 16,
+                align: 'left',
+                lineBreak: true,
+                lineGap: 1
             });
+        doc.y += 32;
 
         dibujarSeccion(`Comparación con la apertura del día siguiente (${fechaLegible(fechaSiguiente)})`);
         const columnasComparacion = [
@@ -1998,23 +2015,33 @@ app.get('/api/control-diario/resumen-cierre.pdf', verificarAdministrador, async 
                 moneda(aperturaCuenta.apertura - saldoTrasladado)
             ];
         }));
-        const textoCierreGuardado = `Cierre guardado por: ${proyeccion.usuario || 'Administrador'} | Fecha y hora: ${proyeccion.cerradoEn || 'No disponible'}`;
+        const textoCierreGuardado = `Cierre guardado por: ${proyeccion.usuario || 'Administrador'}`;
+        const textoFechaCierre = `Fecha y hora: ${fechaHoraLegible(proyeccion.cerradoEn)}`;
         const textoNotaCierre = `Nota del cierre: ${proyeccion.motivo || 'Sin nota registrada'}`;
-        const alturaNotaCierre = doc.heightOfString(textoNotaCierre, { width: ancho, lineGap: 2 });
-        asegurarEspacio(30 + alturaNotaCierre + 8);
+        const alturaNotaCierre = doc.heightOfString(textoNotaCierre, { width: ancho - 20, lineGap: 2 });
+        asegurarEspacio(76 + alturaNotaCierre);
+        const yBloqueCierre = doc.y;
+        doc.roundedRect(margenIzquierdo, yBloqueCierre, ancho, 66 + alturaNotaCierre, 5)
+            .fillAndStroke('#F8FAFC', '#D9E1EA');
         doc.font('Helvetica-Bold').fontSize(8).fillColor('#263445')
-            .text(textoCierreGuardado, {
-                width: ancho,
+            .text(textoCierreGuardado, margenIzquierdo + 10, yBloqueCierre + 10, {
+                width: ancho / 2 - 10,
                 lineGap: 2
             });
-        doc.moveDown(0.4);
         doc.font('Helvetica').fontSize(8).fillColor('#263445')
-            .text(textoNotaCierre, {
-                width: ancho,
+            .text(textoFechaCierre, margenIzquierdo + ancho / 2, yBloqueCierre + 10, {
+                width: ancho / 2 - 10,
+                align: 'left',
+                lineGap: 2
+            });
+        doc.font('Helvetica').fontSize(8).fillColor('#263445')
+            .text(textoNotaCierre, margenIzquierdo + 10, yBloqueCierre + 34, {
+                width: ancho - 20,
                 height: alturaNotaCierre + 2,
                 lineGap: 2,
                 ellipsis: false
             });
+        doc.y = yBloqueCierre + 66 + alturaNotaCierre;
 
         const paginas = doc.bufferedPageRange();
         for (let indice = paginas.start; indice < paginas.start + paginas.count; indice++) {
