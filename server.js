@@ -1967,10 +1967,13 @@ app.get('/api/control-diario/resumen-cierre.pdf', verificarAdministrador, async 
             moneda(arqueo.baseSiguiente),
             moneda(arqueo.producidoRetirado)
         ]]);
-        asegurarEspacio(24);
+        asegurarEspacio(34);
         doc.font('Helvetica').fontSize(7.5).fillColor('#65758B')
             .text('El producido retirado queda fuera de las cuentas controladas. Una diferencia positiva indica sobrante; una negativa, faltante.', {
-                width: ancho
+                width: ancho,
+                height: 18,
+                lineGap: 2,
+                ellipsis: false
             });
 
         dibujarSeccion(`Comparación con la apertura del día siguiente (${fechaLegible(fechaSiguiente)})`);
@@ -1995,15 +1998,22 @@ app.get('/api/control-diario/resumen-cierre.pdf', verificarAdministrador, async 
                 moneda(aperturaCuenta.apertura - saldoTrasladado)
             ];
         }));
-        asegurarEspacio(42);
+        const textoCierreGuardado = `Cierre guardado por: ${proyeccion.usuario || 'Administrador'} | Fecha y hora: ${proyeccion.cerradoEn || 'No disponible'}`;
+        const textoNotaCierre = `Nota del cierre: ${proyeccion.motivo || 'Sin nota registrada'}`;
+        const alturaNotaCierre = doc.heightOfString(textoNotaCierre, { width: ancho, lineGap: 2 });
+        asegurarEspacio(30 + alturaNotaCierre + 8);
         doc.font('Helvetica-Bold').fontSize(8).fillColor('#263445')
-            .text(`Cierre guardado por: ${proyeccion.usuario || 'Administrador'} | Fecha y hora: ${proyeccion.cerradoEn || 'No disponible'}`, {
-                width: ancho
+            .text(textoCierreGuardado, {
+                width: ancho,
+                lineGap: 2
             });
         doc.moveDown(0.4);
         doc.font('Helvetica').fontSize(8).fillColor('#263445')
-            .text(`Nota del cierre: ${proyeccion.motivo || 'Sin nota registrada'}`, {
-                width: ancho
+            .text(textoNotaCierre, {
+                width: ancho,
+                height: alturaNotaCierre + 2,
+                lineGap: 2,
+                ellipsis: false
             });
 
         const paginas = doc.bufferedPageRange();
