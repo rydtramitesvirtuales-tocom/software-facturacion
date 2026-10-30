@@ -1913,12 +1913,15 @@ app.get('/api/control-diario/resumen-cierre.pdf', verificarAdministrador, async 
                     pintarCabecera();
                 }
                 const y = doc.y;
-                if (filaIndice % 2 === 0) {
+                const esTotalGeneral = fila[0] === 'TOTAL GENERAL';
+                if (esTotalGeneral) {
+                    doc.rect(margenIzquierdo, y, ancho, alturaFila).fill('#FFF3C4');
+                } else if (filaIndice % 2 === 0) {
                     doc.rect(margenIzquierdo, y, ancho, alturaFila).fill('#F3F6FA');
                 }
                 let x = margenIzquierdo;
                 fila.forEach((valor, indice) => {
-                    doc.font('Helvetica').fontSize(7).fillColor('#263445')
+                    doc.font(esTotalGeneral ? 'Helvetica-Bold' : 'Helvetica').fontSize(esTotalGeneral ? 7.2 : 7).fillColor(esTotalGeneral ? '#183153' : '#263445')
                         .text(String(valor), x + 3, y + 7, {
                             width: columnas[indice].ancho - 6,
                             align: columnas[indice].alinear || 'left',
@@ -1947,7 +1950,7 @@ app.get('/api/control-diario/resumen-cierre.pdf', verificarAdministrador, async 
         ];
         movimientos[0].ancho = ancho - movimientos.slice(1).reduce((total, columna) => total + columna.ancho, 0);
         dibujarSeccion('Movimientos y conciliación por cuenta');
-        dibujarTabla(movimientos, cuentasControlDiario.map(cuenta => {
+        const filasMovimientos = cuentasControlDiario.map(cuenta => {
             const fila = proyeccion.cuentas[cuenta];
             const contado = fila.contado === null ? 0 : fila.contado;
             return [
@@ -1962,7 +1965,29 @@ app.get('/api/control-diario/resumen-cierre.pdf', verificarAdministrador, async 
                 moneda(contado),
                 moneda(fila.diferencia)
             ];
-        }));
+        });
+        const sumaCuentas = campo => cuentasControlDiario.reduce((total, cuenta) => {
+            const valor = proyeccion.cuentas[cuenta][campo];
+            return total + (valor === null ? 0 : Number(valor) || 0);
+        }, 0);
+        filasMovimientos.push([
+            'TOTAL GENERAL',
+            moneda(sumaCuentas('apertura')),
+            moneda(sumaCuentas('ventas')),
+            moneda(cuentasControlDiario.reduce((total, cuenta) =>
+                total + Number(proyeccion.cuentas[cuenta].pagosTramitadores || 0)
+                    + Number(proyeccion.cuentas[cuenta].pagosEntidades || 0), 0)),
+            moneda(sumaCuentas('gastosLocal')),
+            moneda(sumaCuentas('gastosPersonales')),
+            moneda(cuentasControlDiario.reduce((total, cuenta) =>
+                total + Number(proyeccion.cuentas[cuenta].trasladosEntrada || 0)
+                    - Number(proyeccion.cuentas[cuenta].trasladosSalida || 0), 0)),
+            moneda(sumaCuentas('esperado')),
+            moneda(cuentasControlDiario.reduce((total, cuenta) =>
+                total + (proyeccion.cuentas[cuenta].contado === null ? 0 : Number(proyeccion.cuentas[cuenta].contado) || 0), 0)),
+            moneda(sumaCuentas('diferencia'))
+        ]);
+        dibujarTabla(movimientos, filasMovimientos);
 
         dibujarSeccion('Arqueo de Caja diaria');
         const arqueo = proyeccion.arqueoCaja;
