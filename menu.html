@@ -291,8 +291,8 @@
        <a href="consola2.html" class="menu-btn">
             <div class="icon">📄</div>
             <div class="menu-btn-text">
-                <h3>Ir al Facturador</h3>
-                <p>Registro de trámites, abonos y control de saldos diario.</p>
+               <h3>Registrar ventas y trámites</h3>
+               <p>Abre el facturador para registrar una venta o un trámite.</p>
             </div>
         </a>
         <a href="reporte.html" class="menu-btn" data-admin-only>
@@ -320,7 +320,7 @@
             <p>📞 3017222991</p>
         </div>
         <div class="metrics-container">
-            <div class="metric-card" style="grid-column: 1 / -1;">
+            <div class="metric-card date-selector-card" style="grid-column: 1 / -1;">
                 <div class="metric-title">📅 Día mostrado</div>
                 <input type="date" id="fechaIndicadoresMenu" style="width: 100%; margin-top: 8px;">
             </div>
@@ -469,8 +469,7 @@ function generarReporteSede() {
             if (fechaIndicadores) {
                 fechaIndicadores.max = sesion.hoy;
                 const fechaGuardada = localStorage.getItem('fecha_operativa') || '';
-                fechaIndicadores.value = sesion.rol === 'ADMINISTRADOR'
-                    && fechaGuardada
+                fechaIndicadores.value = fechaGuardada
                     && fechaGuardada <= sesion.hoy
                     ? fechaGuardada
                     : sesion.hoy;
@@ -485,7 +484,7 @@ function generarReporteSede() {
             if (elUsuario) elUsuario.innerText = sesion.nombre;
             if (sesion.rol !== 'ADMINISTRADOR') {
                 document.querySelectorAll('[data-admin-only]').forEach(elemento => elemento.remove());
-                document.querySelectorAll('.metric-card').forEach(elemento => elemento.remove());
+                document.querySelectorAll('.metric-card:not(.date-selector-card)').forEach(elemento => elemento.remove());
                 return;
             }
 

@@ -31,6 +31,27 @@
         margin: 0 auto;
     }
 
+    .filtro-fecha {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 16px 20px;
+        border: 1px solid var(--border-gold);
+        border-radius: 10px;
+        background: var(--bg-secondary);
+        color: var(--gold-light);
+    }
+
+    .filtro-fecha input {
+        padding: 9px 12px;
+        border: 1px solid var(--border-gold);
+        border-radius: 6px;
+        background: var(--bg-primary);
+        color: var(--text-main);
+        font: inherit;
+    }
+
     .tabla-tramites {
         width: 100%;
         border-collapse: separate;
@@ -194,6 +215,10 @@
     </div>
 
     <div class="dashboard-wrapper">
+        <div class="filtro-fecha">
+            <label for="fechaFiltroTramites">Ver trámites del día:</label>
+            <input type="date" id="fechaFiltroTramites">
+        </div>
         <table class="tabla-tramites">
             <thead>
                 <tr>
@@ -274,7 +299,8 @@
 
     // 1. Cargar el listado de trámites desde el servidor filtrado por sede
     function cargarTramites() {
-        const fechaOperativa = localStorage.getItem('fecha_operativa') || '';
+        const fechaOperativa = document.getElementById('fechaFiltroTramites').value;
+        localStorage.setItem('fecha_operativa', fechaOperativa);
         const sedeId = localStorage.getItem('sede_activa_id') || '';
         const url = new URL('api/listar-tramites', window.location.href);
         if (fechaOperativa) url.searchParams.set('fecha', fechaOperativa);
@@ -443,10 +469,19 @@
             const response = await fetch(new URL('api/sesion', window.location.href));
             if (!response.ok) throw new Error('La sesión expiró.');
             const sesion = await response.json();
-            if (sesion.rol === 'APRENDIZ') {
-                if (!sesion.hoy) throw new Error('No se pudo obtener la fecha actual del servidor.');
-                localStorage.setItem('fecha_operativa', sesion.hoy);
-            }
+            if (!sesion.hoy) throw new Error('No se pudo obtener la fecha actual del servidor.');
+            const fechaFiltro = document.getElementById('fechaFiltroTramites');
+            const fechaGuardada = localStorage.getItem('fecha_operativa') || '';
+            fechaFiltro.max = sesion.hoy;
+            fechaFiltro.value = fechaGuardada && fechaGuardada <= sesion.hoy
+                ? fechaGuardada
+                : sesion.hoy;
+            localStorage.setItem('fecha_operativa', fechaFiltro.value);
+            fechaFiltro.addEventListener('change', () => {
+                if (!fechaFiltro.value || fechaFiltro.value > sesion.hoy) return;
+                localStorage.setItem('fecha_operativa', fechaFiltro.value);
+                cargarTramites();
+            });
             puedeCambiarEstado = sesion.rol === 'ADMINISTRADOR';
             cargarTramites();
         } catch (error) {
