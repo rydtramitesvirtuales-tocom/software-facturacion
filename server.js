@@ -2601,7 +2601,7 @@ app.post('/api/cierres-diarios', verificarAdministrador, async (req, res) => {
     }
 });
 
-app.get('/api/reporte-contable-diario', verificarAdministrador, async (req, res) => {
+app.get('/api/reporte-contable-diario', verificarAccesoReporte, async (req, res) => {
     const fecha = String(req.query.fecha || '');
     const sedeId = Number(req.session.sedeActivaId);
     if (!esFechaCalendarioValida(fecha) || !['1', '2'].includes(String(sedeId))) {
