@@ -1119,12 +1119,22 @@ function verificarAdministrador(req, res, next) {
     res.status(403).send('Acceso exclusivo para el administrador.');
 }
 
+function verificarAccesoReporte(req, res, next) {
+    if (['ADMINISTRADOR', 'APRENDIZ'].includes(req.session?.rolUsuario)) {
+        return next();
+    }
+    if (req.path.startsWith('/api')) {
+        return res.status(403).json({ exito: false, mensaje: 'No tienes permiso para consultar este reporte.' });
+    }
+    res.status(403).send('No tienes permiso para consultar este reporte.');
+}
+
 app.get('/', verificarAutenticacion, (req, res) => res.sendFile(__dirname + '/menu.html'));
 app.get('/consola.html', verificarAutenticacion, (req, res) => res.sendFile(__dirname + '/consola.html'));
 app.get('/panel.html', verificarAutenticacion, (req, res) => res.sendFile(__dirname + '/panel.html'));
 app.get('/menu.html', verificarAutenticacion, (req, res) => res.sendFile(__dirname + '/menu.html'));
 app.get('/control-tramites', verificarAutenticacion, (req, res) => res.sendFile(__dirname + '/tramites.html'));
-app.get('/reporte-diario', verificarAutenticacion, verificarAdministrador, (req, res) => res.sendFile(__dirname + '/reporte.html'));
+app.get('/reporte-diario', verificarAutenticacion, verificarAccesoReporte, (req, res) => res.sendFile(__dirname + '/reporte.html'));
 app.get('/balance-mensual', verificarAutenticacion, verificarAdministrador, (req, res) => res.sendFile(__dirname + '/balance.html'));
 app.get('/seleccionar-sede', verificarAutenticacion, (req, res) => res.sendFile(path.join(__dirname, 'sedes.html')));
 app.get('/ingresos_gastos.php', (req, res) => {
@@ -1144,8 +1154,11 @@ app.use((req, res, next) => {
     }
     verificarAutenticacion(req, res, () => {
         const pagina = path.basename(req.path).toLowerCase();
-        if (['balance.html', 'reporte.html', 'control_diario.html'].includes(pagina)) {
+        if (['balance.html', 'control_diario.html'].includes(pagina)) {
             return verificarAdministrador(req, res, next);
+        }
+        if (pagina === 'reporte.html') {
+            return verificarAccesoReporte(req, res, next);
         }
         next();
     });
