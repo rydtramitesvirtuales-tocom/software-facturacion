@@ -434,20 +434,6 @@ function generarReporteSede() {
         const sedeId = localStorage.getItem('sede_activa_id');
         const sedeNombre = localStorage.getItem('sede_activa_nombre');
         const fechaIndicadores = document.getElementById('fechaIndicadoresMenu');
-        const hoyLocal = (() => {
-            const hoy = new Date();
-            return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
-        })();
-        if (fechaIndicadores) {
-            fechaIndicadores.max = hoyLocal;
-            fechaIndicadores.value = localStorage.getItem('fecha_operativa') || hoyLocal;
-            localStorage.setItem('fecha_operativa', fechaIndicadores.value);
-            fechaIndicadores.addEventListener('change', () => {
-                if (!fechaIndicadores.value || fechaIndicadores.value > hoyLocal) return;
-                localStorage.setItem('fecha_operativa', fechaIndicadores.value);
-                cargarIndicadoresMenu();
-            });
-        }
 
         if (!sedeId) {
             window.location.href = 'sedes.html';
@@ -479,6 +465,22 @@ function generarReporteSede() {
             const respuestaSesion = await fetch(apiUrl('api/sesion'));
             if (!respuestaSesion.ok) throw new Error('La sesión expiró. Inicia sesión nuevamente.');
             const sesion = await respuestaSesion.json();
+            if (!sesion.hoy) throw new Error('No se pudo obtener la fecha actual del servidor.');
+            if (fechaIndicadores) {
+                fechaIndicadores.max = sesion.hoy;
+                const fechaGuardada = localStorage.getItem('fecha_operativa') || '';
+                fechaIndicadores.value = sesion.rol === 'ADMINISTRADOR'
+                    && fechaGuardada
+                    && fechaGuardada <= sesion.hoy
+                    ? fechaGuardada
+                    : sesion.hoy;
+                localStorage.setItem('fecha_operativa', fechaIndicadores.value);
+                fechaIndicadores.addEventListener('change', () => {
+                    if (!fechaIndicadores.value || fechaIndicadores.value > sesion.hoy) return;
+                    localStorage.setItem('fecha_operativa', fechaIndicadores.value);
+                    cargarIndicadoresMenu();
+                });
+            }
             const elUsuario = document.getElementById('nombreUsuarioActivo');
             if (elUsuario) elUsuario.innerText = sesion.nombre;
             if (sesion.rol !== 'ADMINISTRADOR') {

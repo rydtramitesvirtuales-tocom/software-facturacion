@@ -38,7 +38,7 @@
         <div class="card">
             <div class="title">Control Interno</div>
             <div class="grid-2">
-                <div class="f-group"><label>Funcionario Operador</label><select id="usr"><option value="Administrador"> Daniel García</option><option value="Aprendiz"> Auxiliar SENA</option></select></div>
+                <div class="f-group"><label>Funcionario Operador</label><span id="nombreOperador" role="status">Validando usuario...</span></div>
             </div>
          
             <div class="title">Datos del Cliente</div>
@@ -139,14 +139,28 @@
     <script>
         let facturaRegistradaId = null;
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             const fechaVenta = document.getElementById('fechaVenta');
-            if (!fechaVenta) return;
-            const hoy = new Date();
-            const fechaLocal = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
-            fechaVenta.max = fechaLocal;
-            fechaVenta.value = localStorage.getItem('fecha_operativa') || fechaLocal;
-            if (fechaVenta.value > fechaLocal) fechaVenta.value = fechaLocal;
+            try {
+                const respuestaSesion = await fetch(new URL('api/sesion', window.location.href));
+                if (!respuestaSesion.ok) throw new Error('La sesión expiró. Inicia sesión nuevamente.');
+                const sesion = await respuestaSesion.json();
+                if (!sesion.hoy) throw new Error('No se pudo obtener la fecha actual del servidor.');
+                document.getElementById('nombreOperador').textContent = sesion.nombre;
+                if (!fechaVenta) return;
+                fechaVenta.max = sesion.hoy;
+                const fechaGuardada = localStorage.getItem('fecha_operativa') || '';
+                fechaVenta.value = sesion.rol === 'APRENDIZ'
+                    ? sesion.hoy
+                    : (fechaGuardada && fechaGuardada <= sesion.hoy ? fechaGuardada : sesion.hoy);
+                if (sesion.rol === 'APRENDIZ') {
+                    localStorage.setItem('fecha_operativa', sesion.hoy);
+                }
+            } catch (error) {
+                console.error('No se pudo cargar el usuario y la fecha de registro:', error);
+                alert(error.message || 'No se pudo validar la sesión.');
+                window.location.href = 'login.html';
+            }
         });
 
         function cargarClienteGenerico() {
@@ -383,7 +397,6 @@
                         const campoFac = document.getElementById('fac');
                         return campoFac ? campoFac.value.trim() : "FAC-2026-690";
                     })(),
-                    usuario_registro: document.getElementById('usr')?.value || "Daniel García",
                     nombre: inputNombre.value.trim(),
                     documento: inputDocumento ? inputDocumento.value.trim() : "",
                     celular: inputCelular ? inputCelular.value.trim() : "",

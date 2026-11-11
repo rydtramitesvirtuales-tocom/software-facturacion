@@ -24,7 +24,7 @@ const usuariosRD = [
         usuario: process.env.APPRENTICE_USERNAME,
         contrasena: process.env.APPRENTICE_PASSWORD,
         rol: 'APRENDIZ',
-        nombre_real: process.env.APPRENTICE_DISPLAY_NAME || 'Funcionario Aprendiz'
+        nombre_real: process.env.APPRENTICE_DISPLAY_NAME || 'Auxiliar Politécnico'
     }
 ];
 
@@ -1177,13 +1177,22 @@ app.use('/api', (req, res, next) => {
     next();
 });
 
-app.get('/api/sesion', (req, res) => {
-    res.json({
-        exito: true,
-        nombre: req.session.nombreUsuario,
-        rol: req.session.rolUsuario,
-        sedeId: req.session.sedeActivaId || null
-    });
+app.get('/api/sesion', async (req, res) => {
+    try {
+        const [[fecha]] = await conexion.promise().query(
+            "SELECT DATE_FORMAT(CURDATE(), '%Y-%m-%d') AS hoy"
+        );
+        res.json({
+            exito: true,
+            nombre: req.session.nombreUsuario,
+            rol: req.session.rolUsuario,
+            sedeId: req.session.sedeActivaId || null,
+            hoy: fecha.hoy
+        });
+    } catch (error) {
+        console.error('No se pudo consultar la fecha actual para la sesión:', error);
+        res.status(500).json({ exito: false, mensaje: 'No se pudo validar la sesión.' });
+    }
 });
 
 // ==========================================

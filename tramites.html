@@ -443,6 +443,10 @@
             const response = await fetch(new URL('api/sesion', window.location.href));
             if (!response.ok) throw new Error('La sesión expiró.');
             const sesion = await response.json();
+            if (sesion.rol === 'APRENDIZ') {
+                if (!sesion.hoy) throw new Error('No se pudo obtener la fecha actual del servidor.');
+                localStorage.setItem('fecha_operativa', sesion.hoy);
+            }
             puedeCambiarEstado = sesion.rol === 'ADMINISTRADOR';
             cargarTramites();
         } catch (error) {
