@@ -277,6 +277,9 @@
             .report-table td { border-bottom: 1px solid #ddd; color: #333; }
             .actions-container, .daily-controls { display: none !important; }
         }
+        input[type="date"], input[type="month"] { color-scheme: dark; }
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="month"]::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 1; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -418,7 +421,7 @@ async function cargarReporteDiario() {
                 venta.consecutivo || `Venta #${venta.id_registro}`,
                 `${venta.nombre_cliente || 'Consumidor Final'} · ${venta.documento_cliente || 'Sin documento'}`,
                 venta.tipo_tramite || 'Trámite',
-                venta.tramitador_responsable || 'Ninguno',
+                !venta.tramitador_responsable || ['Ninguno', 'Sin asignar'].includes(String(venta.tramitador_responsable).trim()) ? 'RD Gestiones' : venta.tramitador_responsable,
                 venta.destino_fondos || 'Sin clasificar',
                 formatoDinero(venta.precio_tramite),
                 formatoDinero(venta.precio_tramitador),

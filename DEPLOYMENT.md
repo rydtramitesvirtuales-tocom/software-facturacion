@@ -39,12 +39,14 @@
 
 1. **Prepara la base de datos antes de desplegar.** Haz una copia de seguridad de MySQL local y restáurala en la base de Aiven. El servidor crea algunas tablas auxiliares, pero no crea las tablas principales (`registro_ventas_completo`, gastos y demás datos del negocio). Comprueba que tablas y registros se hayan migrado y que el usuario de Aiven tenga permisos de lectura, escritura y `CREATE` en esa base. No apuntes la aplicación de producción a la base local.
 2. En Aiven, crea una base y un usuario para la aplicación. Copia el host, puerto, nombre de base, usuario y contraseña del servicio. Descarga el certificado CA de Aiven. En la lista de acceso público de Aiven, permite las direcciones de salida que informa Render para el servicio; no abras el acceso a cualquier IP (`0.0.0.0/0`).
+   Para importar el respaldo desde este PC, configura esos datos en `.env` (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`) y agrega `DB_SSL_CA_PATH` con la ruta al certificado descargado. El archivo `centro_tramites_daniel.sql` contiene datos y se mantiene local, fuera de GitHub. Haz una copia de seguridad y verifica que el destino sea la base correcta antes de ejecutar `node migrar.js`; el script importa ese archivo local con consultas múltiples.
 3. En Render, crea un **Web Service** desde este repositorio y configura:
    - Build Command: `npm ci`
    - Start Command: `npm start`
    - Health Check Path: `/healthz`
    - Variables: `NODE_ENV=production`, `HOST=0.0.0.0`, `TRUST_PROXY=true`, `SESSION_SECRET`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `APPRENTICE_USERNAME`, `APPRENTICE_PASSWORD`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER` y `DB_PASSWORD`. Usa contraseñas nuevas, distintas y seguras; no reutilices las del `.env` local.
 4. En Render, agrega el certificado CA como **Secret File** llamado `aiven-ca.pem` y configura `DB_SSL_CA_PATH=/etc/secrets/aiven-ca.pem`. El servidor valida el certificado TLS de MySQL; no desactives la verificación SSL. No configures `PORT`: Render lo proporciona y la aplicación lo usa automáticamente.
+   La aplicación configura sus conexiones MySQL en hora de Colombia (UTC-05:00), para que los indicadores de hoy y los cierres diarios no cambien de fecha por la zona UTC de Render o Aiven.
 5. Antes de recibir operaciones reales, abre el servicio y comprueba `/healthz`, el inicio de sesión, ambas sedes, crear y consultar una operación de prueba, los permisos, y los reportes. Restaura una copia de seguridad de prueba para confirmar que los datos se pueden recuperar.
 
 ## Apache/XAMPP y HTTPS

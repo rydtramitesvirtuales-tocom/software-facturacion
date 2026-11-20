@@ -1341,6 +1341,10 @@ app.post('/api/facturar-completa', async (req, res) => {
     }
 
     const email_cliente = email || "";
+    const tramitadorResponsable = String(tramitador || '').trim();
+    const tramitadorVenta = ['Ninguno', 'Sin asignar'].includes(tramitadorResponsable)
+        ? 'RD Gestiones'
+        : (tramitadorResponsable || 'RD Gestiones');
     const v_precio_tramite = Number(req.body.precio_tramite ?? req.body.p_tramite);
     const v_precio_tramitador = Number(req.body.precio_tramitador ?? req.body.p_tramitador ?? 0);
     const v_pago_entidad = Number(req.body.pago_entidad ?? req.body.p_entidad ?? 0);
@@ -1367,7 +1371,7 @@ app.post('/api/facturar-completa', async (req, res) => {
 
     const valoresVenta = [
         consecutivo, nombre, documento, celular_cliente, email_cliente, 
-        tramite, tramitador, metodoPagoTramitador, metodoPagoEntidad, destino,
+        tramite, tramitadorVenta, metodoPagoTramitador, metodoPagoEntidad, destino,
         v_precio_tramite, v_precio_tramitador, v_pago_entidad,
         notas, v_sede_id, fechaHoraVenta
     ];
@@ -2848,7 +2852,11 @@ app.get('/api/reporte-balance-mensual', verificarAdministrador, async (req, res)
             [sedeId, `${periodo}%`]
         );
         const [resumenTramitadores] = await conexion.promise().query(
-            `SELECT COALESCE(NULLIF(tramitador_responsable, ''), 'Sin asignar') AS tramitador,
+            `SELECT CASE
+                    WHEN TRIM(COALESCE(tramitador_responsable, '')) IN ('', 'Ninguno', 'Sin asignar')
+                        THEN 'RD Gestiones'
+                    ELSE TRIM(tramitador_responsable)
+                END AS tramitador,
                     COUNT(*) AS cantidad, COALESCE(SUM(precio_tramitador), 0) AS total
              FROM registro_ventas_completo
              WHERE sede_id = ? AND fecha_hora LIKE ?
@@ -3114,7 +3122,7 @@ app.get('/api/reporte-balance-mensual', verificarAdministrador, async (req, res)
             `${formatearFecha(venta.fecha_hora)}\n${venta.consecutivo || 'Sin consecutivo'}`,
             `${venta.nombre_cliente || 'Sin nombre'}\nDoc. ${venta.documento_cliente || 'N/D'}`,
             venta.destino_fondos || 'Sin clasificar',
-            `${venta.tipo_tramite || 'Sin tipo'}\nTramitador: ${venta.tramitador_responsable || 'Sin asignar'}`,
+            `${venta.tipo_tramite || 'Sin tipo'}\nTramitador: ${['', 'Ninguno', 'Sin asignar', null].includes(String(venta.tramitador_responsable || '').trim()) ? 'RD Gestiones' : venta.tramitador_responsable}`,
             moneda(venta.precio_tramite)
         ]));
 

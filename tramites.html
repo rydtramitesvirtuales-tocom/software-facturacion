@@ -52,6 +52,10 @@
         font: inherit;
     }
 
+    input[type="date"], input[type="month"] { color-scheme: dark; }
+    input[type="date"]::-webkit-calendar-picker-indicator,
+    input[type="month"]::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 1; cursor: pointer; }
+
     .tabla-tramites {
         width: 100%;
         border-collapse: separate;

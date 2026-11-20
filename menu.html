@@ -258,6 +258,10 @@
         .text-green { color: var(--color-verde); }
         .text-yellow { color: var(--color-amarillo-brillante); }
 
+        input[type="date"], input[type="month"] { color-scheme: dark; }
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="month"]::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 1; cursor: pointer; }
+
         @media (max-width: 900px) {
             .main-layout { grid-template-columns: 1fr; }
             .center-panel { order: -1; }
@@ -468,12 +472,8 @@ function generarReporteSede() {
             if (!sesion.hoy) throw new Error('No se pudo obtener la fecha actual del servidor.');
             if (fechaIndicadores) {
                 fechaIndicadores.max = sesion.hoy;
-                const fechaGuardada = localStorage.getItem('fecha_operativa') || '';
-                fechaIndicadores.value = fechaGuardada
-                    && fechaGuardada <= sesion.hoy
-                    ? fechaGuardada
-                    : sesion.hoy;
-                localStorage.setItem('fecha_operativa', fechaIndicadores.value);
+                fechaIndicadores.value = sesion.hoy;
+                localStorage.setItem('fecha_operativa', sesion.hoy);
                 fechaIndicadores.addEventListener('change', () => {
                     if (!fechaIndicadores.value || fechaIndicadores.value > sesion.hoy) return;
                     localStorage.setItem('fecha_operativa', fechaIndicadores.value);

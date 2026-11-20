@@ -16,6 +16,9 @@
         .f-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
         .f-group label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #94a3b8; }
         input, select, textarea { background-color: #12151c; border: 1px solid #334155; border-radius: 6px; padding: 8px; color: #fff; font-size: 13px; outline: none; box-sizing: border-box; width: 100%; }
+        input[type="date"], input[type="month"] { color-scheme: dark; }
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="month"]::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 1; cursor: pointer; }
         input:focus, select:focus { border-color: #f59e0b; }
         .display-total { background-color: #12151c; border: 2px solid #334155; border-radius: 10px; padding: 15px; text-align: center; margin-bottom: 15px; }
         .btn-submit { width: 100%; background: linear-gradient(to right, #10b981, #059669); color: #fff; border: none; padding: 14px; border-radius: 10px; font-weight: bold; font-size: 14px; text-transform: uppercase; cursor: pointer; box-shadow: 0 4px 10px rgba(16,185,129,0.2); }
@@ -56,7 +59,7 @@
             <div class="title">Especificación del Servicio y Aliados</div>
             <div class="grid-3">
                 <div class="f-group"><label>Tipo de Trámite</label><input type="text" id="trm" placeholder="Ej. RUT, Pasaporte" required></div>
-                <div class="f-group"><label>Tramitador Externo</label><select id="tra"><option value="Ninguno">Ninguno</option><option value="Zulay">Zulay</option><option value="Elena">Elena</option><option value="Yeison">Yeison</option><option value="Viejito">Viejito</option><option value="Edgar">Edgar</option><option value="Juanpablo">Juanpablo</option><option value="Carlos">Carlos</option><option value="Ruben">Ruben</option><option value="Johana">Johana</option><option value="Otro">Otro</option></select></div>
+                <div class="f-group"><label>Tramitador Externo</label><select id="tra"><option value="RD Gestiones">RD Gestiones</option><option value="Zulay">Zulay</option><option value="Elena">Elena</option><option value="Yeison">Yeison</option><option value="Viejito">Viejito</option><option value="Edgar">Edgar</option><option value="Juanpablo">Juanpablo</option><option value="Carlos">Carlos</option><option value="Ruben">Ruben</option><option value="Johana">Johana</option><option value="Otro">Otro</option></select></div>
                 <div class="f-group"><label>M. Pago Tramitador</label><select id="ptra"><option value="Ninguno">No aplica</option><option value="Caja Física">💵 Efectivo → Caja</option><option value="Bancolombia">🏦 Bancolombia</option><option value="Nequi">📱 Nequi</option><option value="Daviplata">💳 Daviplata</option></select></div>
             </div>
             <div class="grid-2">
@@ -368,7 +371,7 @@
                 const inputEmail = document.querySelector('input[placeholder="ejemplo@gmail.com"]');
                 const inputTramite = document.querySelector('input[placeholder="Ej. RUT, Pasaporte"]');
                 
-                const selectTramitador = document.getElementById('tra') || { value: "Ninguno" };
+                const selectTramitador = document.getElementById('tra') || { value: "RD Gestiones" };
                 const selectPagoTramitador = document.getElementById('ptra') || { value: "Caja Física" };
                 const selectDestino = document.getElementById('dest') || { value: "Caja Física" };
                 const selectMetodoEntidad = document.getElementById('pent') || { value: "Ninguno" };
@@ -402,7 +405,7 @@
                     celular: inputCelular ? inputCelular.value.trim() : "",
                     email: inputEmail ? inputEmail.value.trim() : "",
                     tramite: inputTramite ? inputTramite.value.trim() : "Gestión General",
-                    tramitador: selectTramitador.value,
+                    tramitador: ['RD Gestiones', 'Ninguno', '', null].includes(selectTramitador.value) ? 'RD Gestiones' : selectTramitador.value,
                     pago_tramitador: selectPagoTramitador.value,
                     destino: selectDestino.value,
                     precio_tramite: p_tramite,         
